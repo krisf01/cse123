@@ -66,12 +66,15 @@ def handle_buttons():
 @app.route('/api/update_levels', methods=['POST'])
 def update_levels():
     data = request.json
-    ref = db.reference('food_water_levels')  # Path in your Firebase DB
-    ref.push({
-        'food_level': data.get('food_level'),
-        'water_level': data.get('water_level')
-    })
-    return jsonify({"status": "Data updated in Firebase"}), 200
+    if not data or 'food_level' not in data or 'water_level' not in data:
+        return jsonify({"error": "Invalid data provided"}), 400
+
+    try:
+        ref = db.reference('food_water_levels')
+        ref.push(data)
+        return jsonify({"status": "Data updated in Firebase"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
