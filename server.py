@@ -1,5 +1,16 @@
 from flask import Flask, request, jsonify
 import json
+import firebase_admin
+from firebase_admin import credentials, db
+
+# Initialize Firebase Admin
+cred = credentials.Certificate('/Users/kfout/cse123_test/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/'
+})
+
+# Reference to your database
+ref = db.reference('server/saving-data/fireblog')
 
 app = Flask(__name__)
 
@@ -51,6 +62,16 @@ def handle_buttons():
         return jsonify({"response": "Food Level Checked"})
     else:
         return jsonify({"response": "Unknown Action"}), 400
+    
+@app.route('/api/update_levels', methods=['POST'])
+def update_levels():
+    data = request.json
+    ref = db.reference('food_water_levels')  # Path in your Firebase DB
+    ref.push({
+        'food_level': data.get('food_level'),
+        'water_level': data.get('water_level')
+    })
+    return jsonify({"status": "Data updated in Firebase"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
