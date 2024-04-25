@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSE123's Pet Feeder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            background-color: #f0f8ff; /* Light blue background */
+            color: #333;
+        }
+
+        .header {
+            background-color: #e6f7ff;
+            padding: 10px 0;
+            border-bottom: 2px solid #b3daff;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            background-color: #00e600;
+            border-radius: 50%;
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-left: 5px;
+        }
+
+        .button {
+            background-color: #fff;
+            border: 2px solid #ff6666;
+            border-radius: 50%;
+            padding: 20px;
+            margin: 10px;
+            width: 150px;
+            height: 150px;
+            position: relative; /* To position the icon and text inside */
+            cursor: pointer;
+            box-shadow: 0px 4px 6px #aaa;
+        }
+
+        #buttonContainer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .button-icon {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .button-text {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .schedule {
+            background-color: #fff;
+            padding: 10px;
+            margin: 20px 10px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px #aaa;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e6e6e6;
+            padding: 10px 0;
+        }
+
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>CSE123's Pet Feeder</h1>
+    <span>Online <span class="status-indicator"></span></span>
+</div>
+
+<div>
+
+    <button class="button" onclick="fetchAndDisplayWater('Food Level')">
+        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
+        <span class="button-text">Food Level</span>
+    </button>
+
+    <button class="button"  onclick="fetchAndDisplayWater('Water Level')">
+        <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
+        <span class="button-text">Instant Food</span>
+    </button>
+
+    <button class="button"  onclick="fetchAndDisplayWater('Water Level')">
+        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Water Icon" class="button-icon">
+        <span class="button-text">Water Level</span>
+    </button>
+
+</div>
+
+<div class="schedule">
+    <div class="schedule-item">
+        <span>12pm Dispense Food, Everyday</span>
+        <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="schedule-item">
+        <span>12pm Dispense Water, Everyday</span>
+        <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider round"></span>
+        </label>
+    </div>
+</div>
+
+<div id="result"></div>
+
+<script>
+    async function fetchAndDisplayWater(buttonText) {
+        const apiUrl = 'http://localhost:8080';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ buttonClicked: buttonText }),
+            });
+
+            console.log('Response:', response); // Log the entire response
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.text();
+            document.getElementById('result').innerHTML = `<h2>${data}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        }
+    }
+
+    async function fetchAndDisplayFood(buttonText) {
+        const apiUrl = 'http://localhost:8080';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ buttonClicked: buttonText }),
+            });
+
+            console.log('Response:', response); // Log the entire response
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.text();
+            document.getElementById('result').innerHTML = `<h2>${data}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        }
+    }
+</script>
+</body>
+
+</html>
