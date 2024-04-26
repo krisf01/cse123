@@ -18,3 +18,9 @@ curl http://localhost:8080/api/food_level <br>
 { 
 "food_level": "high" 
 }
+
+/api/water_level:<br>
+curl http://localhost:8080/api/water_level
+{
+  "water_level": "low"
+}
