@@ -88,11 +88,13 @@ def require_api_key(f):
     return decorated_function
 
 def validate_api_key(key):
-    users = firebase_db.child('users').get()
-    for user in users.each():
-        if user.val().get('api_key') == key:
-            return True
+    users_dict = firebase_db.child('users').get()
+    if users_dict:
+        for user_id, user_info in users_dict.items():
+            if user_info.get('api_key') == key:
+                return True
     return False
+
     
 @app.route('/api/update_levels', methods=['POST'])
 @require_api_key
@@ -106,6 +108,19 @@ def update_levels():
         return jsonify({"status": "Data updated in Firebase"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+@app.route('/api/get_levels', methods=['GET'])
+@require_api_key  # Assuming you want this endpoint protected by an API key
+def get_levels():
+    try:
+        with open('status.json', 'r') as file:
+            status = json.load(file)
+        return jsonify(status), 200
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify({"error": "Status file not found or is empty"}), 404
+
+    
 
 @app.route('/register', methods=['POST'])
 def register():
