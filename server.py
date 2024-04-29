@@ -22,7 +22,9 @@ firebase_db = db.reference()
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://cse123petfeeder.com"}})
+#CORS(app, resources={r"/api/*": {"origins": "https://cse123petfeeder.com"}})
+CORS(app, resources={r"/*": {"origins": "*"}})  # This will allow all routes
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -120,19 +122,27 @@ def get_levels():
     except (FileNotFoundError, json.JSONDecodeError):
         return jsonify({"error": "Status file not found or is empty"}), 404
 
-    
-
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
     username = data.get('username')
+    password = data.get('password')  # Ensure this is securely hashed before storage
     api_key = generate_api_key()
-    # Store hashed password in real application
-    firebase_db.child('users').child(username).set({
-        'password': data.get('password'),  # Placeholder for hash
-        'api_key': api_key
-    })
-    return jsonify(api_key=api_key), 201
+    
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    # Attempt to save the user data
+    try:
+        firebase_db.child('users').child(username).set({
+            'password': password,  # This should be a hashed password
+            'api_key': api_key
+        })
+        return jsonify(api_key=api_key), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/login', methods=['POST'])
 def login():
