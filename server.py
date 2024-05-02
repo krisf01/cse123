@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, session
 import json
 from functools import wraps
 from flask_cors import CORS
@@ -23,15 +23,21 @@ firebase_db = db.reference()
 
 app = Flask(__name__)
 #CORS(app, resources={r"/api/*": {"origins": "https://cse123petfeeder.com"}})
+app.secret_key = 'your_secret_key'  # Secret key for session management
 CORS(app, resources={r"/*": {"origins": "*"}})  # This will allow all routes
 
 
-@app.route('/', methods=['GET'])
-def home():
-    # Serve the HTML file for the homepage
-    with open('index.html', 'r') as file:
-        return file.read()
+@app.route('/login', methods=['GET'])
+def login_page():
+    return render_template('login.html')
 
+
+# Main dashboard page
+@app.route('/')
+def home():
+    if 'api_key' not in session:
+        return redirect('/login')
+    return render_template('index.html')
 
 @app.route('/api/food_level', methods=['GET'])
 def get_food_level():
@@ -70,13 +76,24 @@ def generate_api_key():
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if auth_header:
-            token = auth_header.split(' ')[1]
-            if validate_api_key(token):
-                return f(*args, **kwargs)
+        if 'api_key' in session and session['api_key'] == request.headers.get('Authorization'):
+            return f(*args, **kwargs)
         return jsonify({"message": "Unauthorized"}), 401
     return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Assume user validation returns True and assigns an API key
+        if validate_user(username, password):
+            session['api_key'] = 'your_users_api_key'  # Simulated API key
+            return redirect('/')
+        else:
+            return render_template('login.html', error="Invalid credentials")
+    return render_template('login.html')
+
 
 def validate_api_key(key):
     users_dict = firebase_db.child('users').get()
@@ -87,14 +104,13 @@ def validate_api_key(key):
     return False
 
     
+# API to update levels, requiring API key
 @app.route('/api/update_levels', methods=['POST'])
 @require_api_key
 def update_levels():
     data = request.json
-    if not data or 'food_level' not in data or 'water_level' not in data:
-        return jsonify({"error": "Invalid data provided"}), 400
     try:
-        ref = db.reference('food_water_levels')
+        ref = firebase_db.child('food_water_levels')
         ref.push(data)
         return jsonify({"status": "Data updated in Firebase"}), 200
     except Exception as e:
@@ -127,20 +143,16 @@ def receive_data():
     
     return jsonify({"status": "Data successfully received"}), 200
 
+# Registration endpoint
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
     username = data.get('username')
-    password = data.get('password')  # Ensure this is securely hashed before storage
+    password = data.get('password')
     api_key = generate_api_key()
-    
-    if not username or not password:
-        return jsonify({"error": "Missing username or password"}), 400
-
-    # Attempt to save the user data
     try:
         firebase_db.child('users').child(username).set({
-            'password': password,  # This should be a hashed password
+            'password': password,
             'api_key': api_key
         })
         return jsonify(api_key=api_key), 201
@@ -148,15 +160,6 @@ def register():
         return jsonify({"error": str(e)}), 500
 
 
-
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.json
-    username = data.get('username')
-    user = firebase_db.child('users').child(username).get()
-    if user and user.get('password') == data.get('password'):  # Placeholder for password check
-        return jsonify(api_key=user.get('api_key')), 200
-    return jsonify({"error": "Invalid credentials"}), 401
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
