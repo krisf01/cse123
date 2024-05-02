@@ -154,7 +154,7 @@
 
 <div>
 
-    <button class="button" onclick="fetchAndDisplayWater('Food Level')">
+    <button class="button" onclick="fetchAndDisplayFood()">
         <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
         <span class="button-text">Food Level</span>
     </button>
@@ -164,7 +164,7 @@
         <span class="button-text">Instant Food</span>
     </button>
 
-    <button class="button"  onclick="fetchAndDisplayWater('Water Level')">
+    <button class="button"  onclick="fetchAndDisplayWater()">
         <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Water Icon" class="button-icon">
         <span class="button-text">Water Level</span>
     </button>
@@ -208,60 +208,53 @@
 <div id="result"></div>
 
 <script>
-    async function fetchAndDisplayWater(buttonText) {
-        const apiUrl = 'http://localhost:8080';
+    async function fetchAndDisplayWater() {
+    const apiUrl = 'http://localhost:8080/api/get_levels'; // Adjusted to the correct endpoint
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ buttonClicked: buttonText }),
-            });
-
-            console.log('Response:', response); // Log the entire response
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+                'Content-Type': 'application/json',
             }
+        });
 
-            const data = await response.text();
-            document.getElementById('result').innerHTML = `<h2>${data}</h2>`;
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
+        const data = await response.json();
+        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
     }
+}
 
-    async function fetchAndDisplayFood(buttonText) {
-        const apiUrl = 'http://localhost:8080';
+    async function fetchAndDisplayFood() {
+    const apiUrl = 'http://localhost:8080/api/get_levels'; // Adjusted to the correct endpoint
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ buttonClicked: buttonText }),
-            });
-
-            console.log('Response:', response); // Log the entire response
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+                'Content-Type': 'application/json',
             }
+        });
 
-            const data = await response.text();
-            document.getElementById('result').innerHTML = `<h2>${data}</h2>`;
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    }
-</script>
 
-<script>
+        const data = await response.json();
+        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+    }
+}
 
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
@@ -279,11 +272,10 @@ function registerUser(event) {
     .then(response => response.json())
     .then(data => {
         if (data.api_key) {
+            sessionStorage.setItem('api_key', data.api_key); // Store the API key in session storage
             console.log('Registration successful, API Key:', data.api_key);
-            // You can update the DOM to show the API key or redirect the user
         } else {
             console.log('Registration failed:', data.error);
-            // Update the DOM to inform the user of a failed registration
         }
     })
     .catch(error => {
@@ -310,8 +302,8 @@ function registerUser(event) {
               }
           }).catch(error => console.error('Error:', error));
     }
-    </script>
-    
+
+</script>
 
 </body>
 

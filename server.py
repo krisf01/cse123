@@ -32,17 +32,6 @@ def home():
     with open('index.html', 'r') as file:
         return file.read()
 
-@app.route('/api/receive_data', methods=['POST'])
-def receive_data():
-    data = request.json  # Get JSON data sent by the hardware
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-
-    # Assuming data contains keys 'food_level' and 'water_level'
-    with open('status.json', 'w') as file:
-        json.dump(data, file)
-
-    return jsonify({"status": "Data successfully received"}), 200
 
 @app.route('/api/food_level', methods=['GET'])
 def get_food_level():
@@ -113,14 +102,30 @@ def update_levels():
     
     
 @app.route('/api/get_levels', methods=['GET'])
-@require_api_key  # Assuming you want this endpoint protected by an API key
+@require_api_key
 def get_levels():
     try:
-        with open('status.json', 'r') as file:
-            status = json.load(file)
-        return jsonify(status), 200
-    except (FileNotFoundError, json.JSONDecodeError):
-        return jsonify({"error": "Status file not found or is empty"}), 404
+        ref = db.reference('food_water_levels')
+        # Assuming you want to get the latest entry or customize as needed
+        data = ref.get()  
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+#THIS WILL BE ENDPOINT TO RECEIVE DATA FROM PI
+@app.route('/api/receive_data', methods=['POST'])
+@require_api_key  # This uses your predefined require_api_key decorator
+def receive_data():
+    data = request.json  # Get JSON data sent by the hardware
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    # Process the data here (e.g., save to Firebase)
+    # Example of saving to Firebase:
+    ref = db.reference('food_water_levels')
+    ref.push(data)
+    
+    return jsonify({"status": "Data successfully received"}), 200
 
 @app.route('/register', methods=['POST'])
 def register():
