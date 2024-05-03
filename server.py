@@ -36,12 +36,13 @@ def login_page():
 # Main dashboard page
 @app.route('/')
 def home():
-    # Check if the user is logged in by checking 'api_key' in the session
+    print("Accessing home page")
     if 'api_key' not in session:
-        # Redirect to the login page if not logged in
+        print("No API key found, redirecting to login")
         return redirect('/login')
-    # Render index.html if logged in
+    print("Rendering index.html")
     return render_template('index.html')
+
 
 @app.route('/api/food_level', methods=['GET'])
 def get_food_level():

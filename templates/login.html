@@ -37,7 +37,7 @@
             .then(data => {
                 if (data.api_key) {
                     sessionStorage.setItem('api_key', data.api_key);
-                    window.location.href = 'index.html'; // Redirect to the main page
+                    window.location.href = '/'; // Redirect to the main page
                 } else {
                     alert('Login failed: ' + data.error);
                 }
