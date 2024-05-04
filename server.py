@@ -5,6 +5,9 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore, db
 import secrets
+import os
+import json
+from datetime import datetime
 
 # Initialize Firebase Admin
 cred = credentials.Certificate('/Users/kfout/cse123_test/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
@@ -14,11 +17,41 @@ firebase_admin.initialize_app(cred, {
 
 firebase_db = db.reference()
 
+# Directory where the files will be written and saved
+UPLOAD_FOLDER_TEXTS = '/Users/kfout/uploads'
+COMMANDS_FOLDER = '/Users/kfout/uploads'
+COMMANDS_FILE = 'instructions.json'
+
+# Ensure the necessary folders exist
+if not os.path.exists(UPLOAD_FOLDER_TEXTS):
+    os.makedirs(UPLOAD_FOLDER_TEXTS)
+if not os.path.exists(COMMANDS_FOLDER):
+    os.makedirs(COMMANDS_FOLDER)
+
 # Reference to your database
 #ref = db.reference('server/saving-data/fireblog')
 #db = firestore.client()
 #users_ref = db.collection('users')
 #users_ref.add({'username': 'johndoe', 'email': 'johndoe@example.com'})
+
+def validate_token(auth_token):
+    expected_token = "AuPvJrbUlcueojGQLNE6RA"  # This should ideally be stored securely or generated dynamically
+    return auth_token == expected_token
+
+from functools import wraps
+
+def require_token(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]  # Get the token part of the header
+            if validate_token(token):
+                return f(*args, **kwargs)
+            else:
+                return jsonify({"message": "Unauthorized"}), 401
+        return jsonify({"message": "Authorization token not provided"}), 401
+    return decorated_function
 
 
 app = Flask(__name__)
@@ -78,10 +111,19 @@ def handle_buttons():
 def generate_api_key():
     return secrets.token_urlsafe(16)  # Adjust the length as needed
 
+# def require_api_key(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if 'api_key' in session and session['api_key'] == request.headers.get('Authorization'):
+#             return f(*args, **kwargs)
+#         return jsonify({"message": "Unauthorized"}), 401
+#     return decorated_function
+
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'api_key' in session and session['api_key'] == request.headers.get('Authorization'):
+        api_key = request.headers.get('Authorization')
+        if validate_api_key(api_key):
             return f(*args, **kwargs)
         return jsonify({"message": "Unauthorized"}), 401
     return decorated_function
@@ -153,6 +195,48 @@ def receive_data():
     ref.push(data)
     
     return jsonify({"status": "Data successfully received"}), 20
+
+
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    # Process and append each received line to a file
+    file_path = os.path.join(UPLOAD_FOLDER_TEXTS, file.filename)
+
+    # Open the file in append mode, if it doesn't exist it will be created
+    with open(file_path, 'a') as f:
+        f.write(file.read().decode('utf-8') + '\n')  # Decode as utf-8 and append a newline character
+
+    print(f"Received line for file: {file.filename}")
+    return jsonify({"status": "success", "message": f"Line added to file {file.filename} successfully"})
+
+@app.route('/api/commands', methods=['GET', 'POST'])
+@require_token
+def handle_commands():
+    command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
+    if request.method == 'POST':
+        # Receive and store a command
+        data = request.json
+        if not data or 'command' not in data:
+            return jsonify({"error": "No command provided"}), 400
+        command = data['command']
+        with open(command_path, "a") as file:
+            file.write(command + "\n")
+        return jsonify({"message": "Command received and written"}), 200
+    elif request.method == 'GET':
+        if os.path.exists(command_path):
+            with open(command_path, "r") as file:
+                commands = file.read()
+            return jsonify({"commands": commands}), 200
+        return jsonify({"error": "File not found"}), 404
+
 
 
 if __name__ == '__main__':
