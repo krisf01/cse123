@@ -20,7 +20,7 @@ curl http://localhost:8080/api/food_level <br>
 }
 
 /api/water_level:<br>
-curl http://localhost:8080/api/water_level
+curl http://localhost:8080/api/water_level <br>
 {
   "water_level": "low"
 }
@@ -44,3 +44,10 @@ curl -X POST http://localhost:8080/api/update_levels \ <br>
 -H "Content-Type: application/json" \ <br>
 -H "Authorization: Bearer YOUR_API_KEY_HERE" \ <br>
 -d '{"food_level": "high", "water_level": "low"}' <br>
+
+## Secure Connection Between Hardware/Software
+POST to hardware to execute a command (dispense food or capture image): <br>
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer TOKENHERE" -d '{"command": "DISPENSE FOOD"}' http://10.0.0.98:8080/api/commands <br>
+{ <br>
+  "message": "Command received and written" <br>
+}<br>
