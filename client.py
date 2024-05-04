@@ -107,22 +107,19 @@ def fetch_and_write_commands():
        try:
            response = requests.get(command_url, headers=headers)
            if response.status_code == 200:
-               commands = response.json().get('commands', '')
-               print("Received commands:", commands)  # Debugging output
-               if commands:
-                   try:
-                       with open(COMMANDS_FILE, 'w') as file:
-                           file.write(commands)
-                       print("Commands updated locally.")
-                   except IOError as e:
-                       print(f"IO Error when writing file: {e}")
-               else:
-                   print("No commands to update.")
+               commands = response.json().get('commands', [])
+               for command in commands:
+                   print(f"Executing command: {command}")
+                   # Here you would add logic to act on the command
+               # Clear the commands file after executing to prevent re-execution
+               open(COMMANDS_FILE, 'w').close()
            else:
                print("Failed to fetch commands:", response.status_code, response.text)
        except requests.exceptions.RequestException as e:
            print(f"Error fetching commands: {e}")
-       time.sleep(10)
+       time.sleep(10)  # Polling interval
+
+
 
 
 
@@ -134,4 +131,3 @@ if __name__ == "__main__":
 
    watcher_thread.start()
    command_fetch_thread.start()
-

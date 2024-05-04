@@ -7,6 +7,8 @@ from firebase_admin import credentials, firestore, db
 import secrets
 import os
 import json
+import requests
+
 from datetime import datetime
 
 # Initialize Firebase Admin
@@ -222,22 +224,21 @@ def upload_file():
 def handle_commands():
     command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
     if request.method == 'POST':
-        # Receive and store a command
         data = request.json
         if not data or 'command' not in data:
             return jsonify({"error": "No command provided"}), 400
+        
         command = data['command']
         with open(command_path, "a") as file:
             file.write(command + "\n")
         return jsonify({"message": "Command received and written"}), 200
+
     elif request.method == 'GET':
         if os.path.exists(command_path):
             with open(command_path, "r") as file:
-                commands = file.read()
+                commands = file.read().splitlines()
             return jsonify({"commands": commands}), 200
         return jsonify({"error": "File not found"}), 404
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
