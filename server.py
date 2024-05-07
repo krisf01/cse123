@@ -71,11 +71,11 @@ def login_page():
 # Main dashboard page
 @app.route('/')
 def home():
-    print("Accessing home page")
+    print("Session content:", session)  # Debug print to see what's inside the session
     if 'api_key' not in session:
         print("No API key found, redirecting to login")
         return redirect('/login')
-    print("Rendering index.html")
+    print("Rendering index.html with API Key:", session['api_key'])  # Debug print
     return render_template('index.html')
 
 
@@ -133,22 +133,17 @@ def require_api_key(f):
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        # Parsing JSON data directly from request
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
-
-        # Fetch user details from Firebase
         user = firebase_db.child('users').child(username).get()
         if user and user.get('password') == password:
-            # Set session and return API key
             session['api_key'] = user.get('api_key')
+            print("API Key set in session:", session['api_key'])  # Debug print
             return jsonify({"api_key": session['api_key']}), 200
         else:
             return jsonify({"error": "Invalid credentials"}), 401
-
     return render_template('login.html')
-
 
 def validate_api_key(key):
     users_dict = firebase_db.child('users').get()
@@ -198,47 +193,51 @@ def receive_data():
     
     return jsonify({"status": "Data successfully received"}), 20
 
-
-
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
-
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-
-    # Process and append each received line to a file
     file_path = os.path.join(UPLOAD_FOLDER_TEXTS, file.filename)
-
-    # Open the file in append mode, if it doesn't exist it will be created
     with open(file_path, 'a') as f:
-        f.write(file.read().decode('utf-8') + '\n')  # Decode as utf-8 and append a newline character
-
-    print(f"Received line for file: {file.filename}")
+        f.write(file.read().decode('utf-8') + '\n')
     return jsonify({"status": "success", "message": f"Line added to file {file.filename} successfully"})
 
 @app.route('/api/commands', methods=['GET', 'POST'])
-@require_token
 def handle_commands():
     command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
     if request.method == 'POST':
         data = request.json
         if not data or 'command' not in data:
             return jsonify({"error": "No command provided"}), 400
-        
         command = data['command']
-        with open(command_path, "a") as file:
-            file.write(command + "\n")
-        return jsonify({"message": "Command received and written"}), 200
-
-    elif request.method == 'GET':
-        if os.path.exists(command_path):
+        timestamp = datetime.now().isoformat()
+        try:
             with open(command_path, "r") as file:
-                commands = file.read().splitlines()
+                commands = json.load(file)
+        except FileNotFoundError:
+            commands = []
+        commands.append({"timestamp": timestamp, "command": command})
+        with open(command_path, "w") as file:
+            json.dump(commands, file)
+        return jsonify({"message": "Command received and written"}), 200
+    elif request.method == 'GET':
+        last_timestamp = request.args.get('last_timestamp')
+        try:
+            with open(command_path, "r") as file:
+                commands = json.load(file)
+            if last_timestamp:
+                filtered_commands = [cmd for cmd in commands if cmd['timestamp'] > last_timestamp]
+                return jsonify({"commands": filtered_commands}), 200
             return jsonify({"commands": commands}), 200
-        return jsonify({"error": "File not found"}), 404
+        except FileNotFoundError:
+            commands = []  # Create an empty list if file not found
+            with open(command_path, "w") as file:
+                json.dump(commands, file)  # Create the file
+            return jsonify({"commands": commands}), 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

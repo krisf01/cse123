@@ -21,7 +21,7 @@
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
         
-            fetch('http://10.0.0.98:8080/login', {
+            fetch('http://127.0.0.1:8080/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -35,13 +35,13 @@
                 return response.json();
             })
             .then(data => {
-                if (data.api_key) {
-                    sessionStorage.setItem('api_key', data.api_key);
-                    window.location.href = '/'; // Redirect to the main page
-                } else {
-                    alert('Login failed: ' + data.error);
-                }
-            })
+            if (data.api_key) {
+                sessionStorage.setItem('api_key', data.api_key);
+                window.location.href = '/'; // Redirect to the main page
+            } else {
+                alert('Login failed: ' + data.error);
+            }
+        })
             .catch(error => {
                 console.error('Error during login:', error);
                 alert('Login failed: Please check console for more details.');
