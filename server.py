@@ -206,6 +206,7 @@ def upload_file():
     return jsonify({"status": "success", "message": f"Line added to file {file.filename} successfully"})
 
 @app.route('/api/commands', methods=['GET', 'POST'])
+@require_token
 def handle_commands():
     command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
     if request.method == 'POST':
