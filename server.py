@@ -37,7 +37,10 @@ if not os.path.exists(COMMANDS_FOLDER):
 #users_ref.add({'username': 'johndoe', 'email': 'johndoe@example.com'})
 
 def validate_token(auth_token):
-    expected_token = "AuPvJrbUlcueojGQLNE6RA"  # This should ideally be stored securely or generated dynamically
+    # Retrieve the expected token from environment variables
+    expected_token = os.environ.get("BEARER_TOKEN")
+    if not expected_token:
+        raise EnvironmentError("Bearer token not set in the environment variables")
     return auth_token == expected_token
 
 from functools import wraps
