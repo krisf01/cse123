@@ -144,6 +144,18 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
+        .time-select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #b3daff;
+            margin-left: 10px; /* Adjust spacing to align with design */
+        }
+
+        .controls {
+        display: flex;
+        align-items: center; /* Ensure vertical alignment is centered */
+    }
     </style>
 </head>
 <body>
@@ -178,18 +190,16 @@
 
 <div class="schedule">
     <div class="schedule-item">
-        <span>12pm Dispense Food, Everyday</span>
+        <span>Dispense Food Everyday Automatically</span>
+        <div class = "controls">
         <label class="switch">
             <input type="checkbox" checked>
             <span class="slider round"></span>
         </label>
+        <!-- New time select menu -->
+        <select class="time-select">
+        </select>
     </div>
-    <div class="schedule-item">
-        <span>12pm Dispense Water, Everyday</span>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider round"></span>
-        </label>
     </div>
 </div>
 
@@ -197,7 +207,7 @@
 
 <script>
     async function fetchAndDisplayWater() {
-    const apiUrl = 'http://172.20.10.3:8080/api/water_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://127.0.0.1:8080/api/water_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -221,7 +231,7 @@
 }
 
     async function fetchAndDisplayFood() {
-    const apiUrl = 'http://172.20.10.3:8080/api/food_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://127.0.0.1:8080/api/food_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -245,7 +255,7 @@
 }
 
 async function dispenseFood() {
-    const apiUrl = 'http://172.20.10.3:8080/api/commands'; // Correct endpoint that receives the dispense command
+    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
 
     try {
         const response = await fetch(apiUrl, {
@@ -271,7 +281,7 @@ async function dispenseFood() {
 }
 
 async function liveFeed() {
-    const apiUrl = 'http://172.20.10.3:8080/api/commands'; // Correct endpoint that receives the dispense command
+    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
 
     try {
         const response = await fetch(apiUrl, {
@@ -302,7 +312,7 @@ function registerUser(event) {
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('http://172.20.10.3:8080/register', {
+    fetch('http://127.0.0.1:8080/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -329,7 +339,7 @@ function loginUser(event) {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('http://172.20.10.3:8080/login', {
+    fetch('http://127.0.0.1:8080/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -364,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            fetch('http://172.20.10.3:8080/login', {
+            fetch('http://127.0.0.1:8080/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -394,6 +404,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Login form not found. Please check the form ID.");
     }
 });
+
+function populateTimeOptions() {
+    const timeSelect = document.querySelector('.time-select');
+    const times = ['12:00 AM', '1:00 AM', '2:00 AM', '3:00 AM', '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '08:00 AM','9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM', '11:00 PM']; // This array could be fetched from a server or configured more dynamically
+    times.forEach(time => {
+        let option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        timeSelect.appendChild(option);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', populateTimeOptions); // Call this function when the page is loaded
+
 
 
 </script>
