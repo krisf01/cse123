@@ -45,9 +45,18 @@ curl -X POST http://localhost:8080/api/update_levels \ <br>
 -H "Authorization: Bearer YOUR_API_KEY_HERE" \ <br>
 -d '{"food_level": "high", "water_level": "low"}' <br>
 
+UPDATED CURL COMMAND
+curl -X POST -d '{"food_level": "high"}' 'https://cse123-bac2c-default-rtdb.firebaseio.com/users/cse123petfeeder.json?auth=AuPvJrbUlcueojGQLNE6R'
+
 ## Secure Connection Between Hardware/Software
 POST to hardware to execute a command (dispense food or capture image): <br>
 curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer TOKENHERE" -d '{"command": "DISPENSE FOOD"}' http://10.0.0.98:8080/api/commands <br>
 { <br>
   "message": "Command received and written" <br>
 }<br>
+
+
+VERY IMPORTANT FIREBASE TESTING
+
+curl -X PATCH -d "{\"food_level\": \"high\", \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"}" \
+'https://cse123-bac2c-default-rtdb.firebaseio.com/users/cse123petfeeder/.json?auth=AuPvJrbUlcueojGQLNE6RA'

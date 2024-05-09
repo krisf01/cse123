@@ -159,6 +159,11 @@
         <span class="button-text">Food Level</span>
     </button>
 
+    <!-- <button class="button" onclick="fetchAndDisplayFood()">
+        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
+        <span class="button-text">Food Level</span>
+    </button> -->
+
     <button class="button" onclick="dispenseFood()">
         <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
         <span class="button-text">Dispense Food</span>
@@ -196,14 +201,13 @@
 <div id="result"></div>
 
 <script>
-    async function fetchAndDisplayWater() {
-    const apiUrl = 'http://10.0.0.98:8080:8080/api/water_level'; // Adjusted to the correct endpoint
-
+async function fetchAndDisplayWater() {
+    const apiUrl = 'http://127.0.0.1:8080/api/water_level';  // Make sure this is the correct URL
     try {
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,  // Ensure API key is required and used
                 'Content-Type': 'application/json',
             }
         });
@@ -213,21 +217,44 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
+        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`;  // Ensure you have a div with id="result" to display this
     } catch (error) {
         console.error('Error fetching data:', error);
         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
     }
 }
+    
+//     async function fetchAndDisplayWater() {
+//     const apiUrl = 'http://10.0.0.98:8080:8080/api/water_level'; // Adjusted to the correct endpoint
 
-    async function fetchAndDisplayFood() {
-    const apiUrl = 'http://10.0.0.98:8080:8080/api/food_level'; // Adjusted to the correct endpoint
+//     try {
+//         const response = await fetch(apiUrl, {
+//             method: 'GET',
+//             headers: {
+//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+//                 'Content-Type': 'application/json',
+//             }
+//         });
 
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+
+//         const data = await response.json();
+//         document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
+//     } catch (error) {
+//         console.error('Error fetching data:', error);
+//         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+//     }
+// }
+
+async function fetchAndDisplayFood() {
+    const apiUrl = 'http://127.0.0.1:8080/api/food_level';  // Make sure this is the correct URL
     try {
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,  // Ensure API key is required and used
                 'Content-Type': 'application/json',
             }
         });
@@ -237,12 +264,36 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
+        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`;  // Ensure you have a div with id="result" to display this
     } catch (error) {
         console.error('Error fetching data:', error);
         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
     }
 }
+
+//     async function fetchAndDisplayFood() {
+//     const apiUrl = 'http://10.0.0.98:8080:8080/api/food_level'; // Adjusted to the correct endpoint
+
+//     try {
+//         const response = await fetch(apiUrl, {
+//             method: 'GET',
+//             headers: {
+//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
+//                 'Content-Type': 'application/json',
+//             }
+//         });
+
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+
+//         const data = await response.json();
+//         document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
+//     } catch (error) {
+//         console.error('Error fetching data:', error);
+//         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+//     }
+// }
 
 async function dispenseFood() {
     const apiUrl = 'http://10.0.0.98:8080/api/commands'; // Correct endpoint that receives the dispense command

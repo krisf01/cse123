@@ -12,7 +12,7 @@ import requests
 from datetime import datetime
 
 # Initialize Firebase Admin
-cred = credentials.Certificate('/Users/kfout/cse123_test/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
+cred = credentials.Certificate('/Users/sriharshamaddala/cse123github/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/'
 })
@@ -20,8 +20,8 @@ firebase_admin.initialize_app(cred, {
 firebase_db = db.reference()
 
 # Directory where the files will be written and saved
-UPLOAD_FOLDER_TEXTS = '/Users/kfout/uploads'
-COMMANDS_FOLDER = '/Users/kfout/uploads'
+UPLOAD_FOLDER_TEXTS = '/Users/sriharshamaddala/uploads'
+COMMANDS_FOLDER = '/Users/sriharshamaddala/uploads'
 COMMANDS_FILE = 'instructions.json'
 
 # Ensure the necessary folders exist
@@ -79,23 +79,108 @@ def home():
     return render_template('index.html')
 
 
+# @app.route('/api/food_level', methods=['GET'])
+# def get_food_level():
+#     try:
+#         with open('status.json', 'r') as file:
+#             status = json.load(file)
+#         return jsonify({"food_level": status.get("food_level", "Unknown")}), 200
+#     except (FileNotFoundError, json.JSONDecodeError):
+#         return jsonify({"error": "Status file not found or is empty"}), 404
+
+
+
 @app.route('/api/food_level', methods=['GET'])
 def get_food_level():
     try:
-        with open('status.json', 'r') as file:
-            status = json.load(file)
-        return jsonify({"food_level": status.get("food_level", "Unknown")}), 200
-    except (FileNotFoundError, json.JSONDecodeError):
-        return jsonify({"error": "Status file not found or is empty"}), 404
+        ref = db.reference('users/cse123petfeeder')
+        entries = ref.get()
+        
+        if entries:
+            # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
+            if 'food_level' in entries:
+                return jsonify({"food_level": entries['food_level']}), 200
+            else:
+                return jsonify({"error": "No food level data found"}), 404
+        else:
+            return jsonify({"error": "No data found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# @app.route('/api/food_level', methods=['GET'])
+# def get_food_level():
+#     try:
+#         # Fetch all entries from Firebase under the specified node
+#         ref = db.reference('users/cse123petfeeder')
+#         entries = ref.get()
+        
+#         # Check if entries exist
+#         if entries:
+#             # Iterate over each entry
+#             for entry_key, entry_value in entries.items():
+#                 # Check if 'food_level' exists in this entry
+#                 if 'food_level' in entry_value:
+#                     # Return the first entry that has 'food_level'
+#                     return jsonify({"food_level": entry_value['food_level']}), 200
+            
+#             # If no entries have 'food_level'
+#             return jsonify({"error": "No food level data found"}), 404
+#         else:
+#             return jsonify({"error": "No data found"}), 404
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/water_level', methods=['GET'])
 def get_water_level():
     try:
-        with open('status.json', 'r') as file:
-            status = json.load(file)
-        return jsonify({"water_level": status.get("water_level", "Unknown")}), 200
-    except (FileNotFoundError, json.JSONDecodeError):
-        return jsonify({"error": "Status file not found or is empty"}), 404
+        ref = db.reference('users/cse123petfeeder')
+        entries = ref.get()
+        
+        if entries:
+            # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
+            if 'water_level' in entries:
+                return jsonify({"water_level": entries['water_level']}), 200
+            else:
+                return jsonify({"error": "No water level data found"}), 404
+        else:
+            return jsonify({"error": "No data found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+#for the water level
+# @app.route('/api/water_level', methods=['GET'])
+# def get_water_level():
+#     try:
+#         # Fetch all entries from Firebase under the specified node
+#         ref = db.reference('users/cse123petfeeder')
+#         entries = ref.get()
+        
+#         # Check if entries exist
+#         if entries:
+#             # Iterate over each entry
+#             for entry_key, entry_value in entries.items():
+#                 # Check if 'food_level' exists in this entry
+#                 if 'water_level' in entry_value:
+#                     # Return the first entry that has 'food_level'
+#                     return jsonify({"water_level": entry_value['water_level']}), 200
+            
+#             # If no entries have 'food_level'
+#             return jsonify({"error": "No water level data found"}), 404
+#         else:
+#             return jsonify({"error": "No data found"}), 404
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+
+# @app.route('/api/water_level', methods=['GET'])
+# def get_water_level():
+#     try:
+#         with open('status.json', 'r') as file:
+#             status = json.load(file)
+#         return jsonify({"water_level": status.get("water_level", "Unknown")}), 200
+#     except (FileNotFoundError, json.JSONDecodeError):
+#         return jsonify({"error": "Status file not found or is empty"}), 404
 
 # This route may need to be adjusted or removed based on your app's needs
 @app.route('/', methods=['POST'])
