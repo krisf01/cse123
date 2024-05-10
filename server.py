@@ -67,7 +67,7 @@ def require_token(f):
 
 
 app = Flask(__name__)
-#CORS(app, resources={r"/api/*": {"origins": "https://cse123petfeeder.com"}})
+#CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
 CORS(app, resources={r"/*": {"origins": "*"}})  # Adjust this as needed
 
 app.secret_key = secrets.token_urlsafe(16)  # Generates a new key
@@ -232,7 +232,6 @@ def get_pic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-#THIS WILL BE ENDPOINT TO RECEIVE DATA FROM PI
 @app.route('/api/receive_data', methods=['POST'])
 @require_api_key  # This uses your predefined require_api_key decorator
 def receive_data():
@@ -247,7 +246,6 @@ def receive_data():
     
     return jsonify({"status": "Data successfully received"}), 20
 
-# SKIP FOR NOW
 # @app.route('/api/upload', methods=['POST'])
 # @require_token
 # def upload_file():
