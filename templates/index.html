@@ -281,31 +281,62 @@ async function dispenseFood() {
 }
 
 // come back to this
+// async function liveFeed() {
+//     const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+
+//     try {
+//         const response = await fetch(apiUrl, {
+//             method: 'POST',
+//             headers: {
+//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+//         });
+
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+
+//         const data = await response.json();
+//         console.log('Response from server:', data.message); // Log or handle the response appropriately
+//         alert('Capture command sent: ' + data.message);
+//     } catch (error) {
+//         console.error('Error sending capture command:', error);
+//         alert('Error sending capture command. Please try again.');
+//     }
+// }
+
 async function liveFeed() {
-    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-        });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            if(data.image_url){
+                const imageModal = document.getElementById('imageModal');
+                const popupImage = document.getElementById('popupImage');
+                popupImage.src = data.image_url;
+                imageModal.style.display = 'block'; // Show the modal
+            }else{
+                throw new Error('No image URL found.');
+            }
+            //document.getElementById('result').innerHTML = `<h2>Image URL: ${data.image_url}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
-
-        const data = await response.json();
-        console.log('Response from server:', data.message); // Log or handle the response appropriately
-        alert('Capture command sent: ' + data.message);
-    } catch (error) {
-        console.error('Error sending capture command:', error);
-        alert('Error sending capture command. Please try again.');
     }
-}
 
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
