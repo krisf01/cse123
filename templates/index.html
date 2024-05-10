@@ -6,20 +6,26 @@
     <title>CSE123's Pet Feeder</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            background-color: #f0f8ff; /* Light blue background */
+            font-family: 'Arial', sans-serif;
+            background-image: url('https://source.unsplash.com/1600x900/?pets'); /* Change to an appropriate background */
+            background-size: cover;
             color: #333;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-
         .header {
-            background-color: #e6f7ff;
-            padding: 10px 0;
-            border-bottom: 2px solid #b3daff;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            width: 80%;
+            text-align: center;
         }
-
         .status-indicator {
             background-color: #00e600;
             border-radius: 50%;
@@ -28,76 +34,61 @@
             height: 10px;
             margin-left: 5px;
         }
-
         .button {
-            background-color: #fff;
-            border: 2px solid #ff6666;
-            border-radius: 50%;
-            padding: 20px;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
             margin: 10px;
-            width: 150px;
-            height: 150px;
-            position: relative; /* To position the icon and text inside */
             cursor: pointer;
-            box-shadow: 0px 4px 6px #aaa;
-        }
-
-        #buttonContainer {
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
             display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
+            align-items: center;
+            justify-content: center;
         }
-
+        .button:hover {
+            transform: translateY(-3px);
+        }
         .button-icon {
             width: 60px;
             height: 60px;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-right: 10px;
         }
-
         .button-text {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            font-size: 16px;
+            color: #333;
         }
-
         .schedule {
-            background-color: #fff;
-            padding: 10px;
-            margin: 20px 10px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px #aaa;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+            width: 80%;
+            margin: 20px;
         }
-
         .schedule-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px;
+        }
+        .schedule-item:not(:last-child) {
             border-bottom: 1px solid #e6e6e6;
-            padding: 10px 0;
         }
-
-        .schedule-item:last-child {
-            border-bottom: none;
-        }
-
         .switch {
             position: relative;
             display: inline-block;
             width: 60px;
             height: 34px;
         }
-
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .slider {
             position: absolute;
             cursor: pointer;
@@ -106,10 +97,8 @@
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            -webkit-transition: .4s;
             transition: .4s;
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -118,234 +107,205 @@
             left: 4px;
             bottom: 4px;
             background-color: white;
-            -webkit-transition: .4s;
             transition: .4s;
         }
-
         input:checked + .slider {
             background-color: #2196F3;
         }
-
         input:focus + .slider {
             box-shadow: 0 0 1px #2196F3;
         }
-
         input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
             transform: translateX(26px);
         }
-
-        /* Rounded sliders */
         .slider.round {
             border-radius: 34px;
         }
-
         .slider.round:before {
             border-radius: 50%;
         }
     </style>
 </head>
 <body>
-<div class="header">
-    <h1>CSE123's Pet Feeder</h1>
-    <span>Online <span class="status-indicator"></span></span>
-</div>
-
-<div>
-
-    <button class="button" onclick="fetchAndDisplayFood()">
-        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
-        <span class="button-text">Food Level</span>
-    </button>
-
-    <!-- <button class="button" onclick="fetchAndDisplayFood()">
-        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
-        <span class="button-text">Food Level</span>
-    </button> -->
-
-    <button class="button" onclick="dispenseFood()">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
-        <span class="button-text">Dispense Food</span>
-    </button>
-
-    <button class="button" onclick="liveFeed()">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
-        <span class="button-text">Live Feed</span>
-    </button>
-
-    <button class="button"  onclick="fetchAndDisplayWater()">
-        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Water Icon" class="button-icon">
-        <span class="button-text">Water Level</span>
-    </button>
-
-</div>
-
-<div class="schedule">
-    <div class="schedule-item">
-        <span>12pm Dispense Food, Everyday</span>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider round"></span>
-        </label>
+    <div class="header">
+        <h1>CSE123's Pet Feeder</h1>
+        <span>Online <span class="status-indicator"></span></span>
     </div>
-    <div class="schedule-item">
-        <span>12pm Dispense Water, Everyday</span>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider round"></span>
-        </label>
-    </div>
-</div>
-
-<div id="result"></div>
-
-<script>
-async function fetchAndDisplayWater() {
-    const apiUrl = 'http://127.0.0.1:8080/api/water_level';  // Make sure this is the correct URL
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,  // Ensure API key is required and used
-                'Content-Type': 'application/json',
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`;  // Ensure you have a div with id="result" to display this
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
-    }
-}
     
-//     async function fetchAndDisplayWater() {
-//     const apiUrl = 'http://10.0.0.98:8080:8080/api/water_level'; // Adjusted to the correct endpoint
+    <div id="imageModal" style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px;">
+            <span onclick="document.getElementById('imageModal').style.display='none'" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <img id="popupImage" src="" style="width: 100%;">
+        </div>
+    </div>
 
-//     try {
-//         const response = await fetch(apiUrl, {
-//             method: 'GET',
-//             headers: {
-//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
-//                 'Content-Type': 'application/json',
-//             }
-//         });
+    <div id="buttonContainer">
+        <button class="button" onclick="fetchAndDisplayFood()">
+            <img src="https://source.unsplash.com/60x60/?cat,food" alt="Food Icon" class="button-icon">
+            <span class="button-text">Food Level</span>
+        </button>
 
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
+        <button class="button" onclick="dispenseFood()">
+            <img src="https://source.unsplash.com/60x60/?dog,food" alt="Dispense Food" class="button-icon">
+            <span class="button-text">Dispense Food</span>
+        </button>
 
-//         const data = await response.json();
-//         document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
-//     } catch (error) {
-//         console.error('Error fetching data:', error);
-//         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
-//     }
-// }
+        <button class="button" onclick="liveFeed()">
+            <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
+            <span class="button-text">Live Feed</span>
+        </button>
 
-async function fetchAndDisplayFood() {
-    const apiUrl = 'http://127.0.0.1:8080/api/food_level';  // Make sure this is the correct URL
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,  // Ensure API key is required and used
-                'Content-Type': 'application/json',
+        <button class="button" onclick="fetchAndDisplayWater()">
+            <img src="https://source.unsplash.com/60x60/?water,bowl" alt="Water Icon" class="button-icon">
+            <span class="button-text">Water Level</span>
+        </button>
+    </div>
+
+    <div class="schedule">
+        <div class="schedule-item">
+            <span>12pm Dispense Food, Everyday</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="schedule-item">
+            <span>12pm Dispense Water, Everyday</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div id="result"></div>
+
+    <script>
+    async function fetchAndDisplayWater() {
+        const apiUrl = 'http://127.0.0.1:8080/api/water_level';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
-
-        const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`;  // Ensure you have a div with id="result" to display this
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
     }
-}
 
-//     async function fetchAndDisplayFood() {
-//     const apiUrl = 'http://10.0.0.98:8080:8080/api/food_level'; // Adjusted to the correct endpoint
+    async function fetchAndDisplayFood() {
+        const apiUrl = 'http://127.0.0.1:8080/api/food_level';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
 
-//     try {
-//         const response = await fetch(apiUrl, {
-//             method: 'GET',
-//             headers: {
-//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Use the stored API key
-//                 'Content-Type': 'application/json',
-//             }
-//         });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
-
-//         const data = await response.json();
-//         document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
-//     } catch (error) {
-//         console.error('Error fetching data:', error);
-//         document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
-//     }
-// }
-
-async function dispenseFood() {
-    const apiUrl = 'http://10.0.0.98:8080/api/commands'; // Correct endpoint that receives the dispense command
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Assuming API key is stored in session storage
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ command: "DISPENSE FOOD" }) // Sending command to the server
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
-
-        const data = await response.json();
-        console.log('Response from server:', data.message); // Log or handle the response appropriately
-        alert('Food Dispensed: ' + data.message);
-    } catch (error) {
-        console.error('Error sending dispense command:', error);
-        alert('Error dispensing food. Please try again.');
     }
-}
 
-async function liveFeed() {
-    const apiUrl = 'http://10.0.0.98:8080/api/commands'; // Correct endpoint that receives the dispense command
+    async function dispenseFood() {
+        const apiUrl = 'http://127.0.0.1:8080/api/commands';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: "DISPENSE FOOD" })
+            });
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-        });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            console.log('Response from server:', data.message);
+            alert('Food Dispensed: ' + data.message);
+        } catch (error) {
+            console.error('Error sending dispense command:', error);
+            alert('Error dispensing food. Please try again.');
         }
-
-        const data = await response.json();
-        console.log('Response from server:', data.message); // Log or handle the response appropriately
-        alert('Capture command sent: ' + data.message);
-    } catch (error) {
-        console.error('Error sending capture command:', error);
-        alert('Error sending capture command. Please try again.');
     }
-}
+
+    // async function liveFeed() {
+    //     const apiUrl = 'http://127.0.0.1:8080/api/commands';
+    //     try {
+    //         const response = await fetch(apiUrl, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({ command: "CAPTURE" })
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! Status: ${response.status}`);
+    //         }
+
+    //         const data = await response.json();
+    //         console.log('Response from server:', data.message);
+    //         alert('Capture command sent: ' + data.message);
+    //     } catch (error) {
+    //         console.error('Error sending capture command:', error);
+    //         alert('Error sending capture command. Please try again.');
+    //     }
+    // }
+
+    async function liveFeed() {
+        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if(data.image_url){
+                const imageModal = document.getElementById('imageModal');
+                const popupImage = document.getElementById('popupImage');
+                popupImage.src = data.image_url;
+                imageModal.style.display = 'block'; // Show the modal
+            }else{
+                throw new Error('No image URL found.');
+            }
+            //document.getElementById('result').innerHTML = `<h2>Image URL: ${data.image_url}</h2>`;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        }
+    }
 
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
