@@ -34,6 +34,7 @@
             height: 10px;
             margin-left: 5px;
         }
+
         .button {
             background-color: #ffffff;
             border: none;
@@ -124,7 +125,6 @@
         .slider.round:before {
             border-radius: 50%;
         }
-
         input:checked + .slider:before {
             -webkit-transform: translateX(26px);
             -ms-transform: translateX(26px);
@@ -151,14 +151,16 @@
         display: flex;
         align-items: center; /* Ensure vertical alignment is centered */
     }
-    </style>
+
+
+</style>
 </head>
 <body>
-    <div class="header">
+<div class="header">
         <h1>CSE123's Pet Feeder</h1>
         <span>Online <span class="status-indicator"></span></span>
     </div>
-    
+
     <div id="imageModal" style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
         <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px;">
             <span onclick="document.getElementById('imageModal').style.display='none'" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
@@ -187,7 +189,6 @@
             <span class="button-text">Water Level</span>
         </button>
     </div>
-
     <div class="schedule">
         <div class="schedule-item">
             <span>Dispense Food Everyday Automatically</span>
@@ -207,7 +208,7 @@
 
 <script>
     async function fetchAndDisplayWater() {
-    const apiUrl = 'http://127.0.0.1:8080/api/water_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'https://cse123petfeeder.com/api/water_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -231,7 +232,7 @@
 }
 
     async function fetchAndDisplayFood() {
-    const apiUrl = 'http://127.0.0.1:8080/api/food_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'https://cse123petfeeder.com/api/food_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -255,7 +256,7 @@
 }
 
 async function dispenseFood() {
-    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+    const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
 
     try {
         const response = await fetch(apiUrl, {
@@ -280,35 +281,34 @@ async function dispenseFood() {
     }
 }
 
-// come back to this
-// async function liveFeed() {
-//     const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+//async function liveFeed() {
+//    const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
 
-//     try {
-//         const response = await fetch(apiUrl, {
-//             method: 'POST',
-//             headers: {
-//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-//         });
+//    try {
+//        const response = await fetch(apiUrl, {
+//            method: 'POST',
+//            headers: {
+//                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+//                'Content-Type': 'application/json',
+//            },
+//            body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+//        });
 
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
+//        if (!response.ok) {
+//            throw new Error(`HTTP error! Status: ${response.status}`);
+//        }
 
-//         const data = await response.json();
-//         console.log('Response from server:', data.message); // Log or handle the response appropriately
-//         alert('Capture command sent: ' + data.message);
-//     } catch (error) {
-//         console.error('Error sending capture command:', error);
-//         alert('Error sending capture command. Please try again.');
-//     }
-// }
+//        const data = await response.json();
+//        console.log('Response from server:', data.message); // Log or handle the response appropriately
+//        alert('Capture command sent: ' + data.message);
+//    } catch (error) {
+//        console.error('Error sending capture command:', error);
+//        alert('Error sending capture command. Please try again.');
+//    }
+//}
 
 async function liveFeed() {
-        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        const apiUrl = 'https://cse123petfeeder.com/api/live_feed';
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -321,7 +321,6 @@ async function liveFeed() {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-
             const data = await response.json();
             if(data.image_url){
                 const imageModal = document.getElementById('imageModal');
@@ -336,7 +335,7 @@ async function liveFeed() {
             console.error('Error fetching data:', error);
             document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
-    }
+}
 
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
@@ -344,7 +343,7 @@ function registerUser(event) {
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('http://127.0.0.1:8080/register', {
+    fetch('https://cse123petfeeder.com/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -365,13 +364,12 @@ function registerUser(event) {
         console.error('Error during registration:', error);
     });
 }
-    
 function loginUser(event) {
     event.preventDefault(); // Stop the form from submitting normally
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('http://127.0.0.1:8080/login', {
+    fetch('https://cse123petfeeder.com/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -397,7 +395,6 @@ function loginUser(event) {
         alert('Login failed: Please check console for more details.');
     });
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -406,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            fetch('http://127.0.0.1:8080/login', {
+            fetch('https://cse123petfeeder.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -436,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Login form not found. Please check the form ID.");
     }
 });
+
 
 function populateTimeOptions() {
     const timeSelect = document.querySelector('.time-select');
