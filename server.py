@@ -8,6 +8,10 @@ import secrets
 import os
 import json
 import requests
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from datetime import datetime
 
@@ -20,15 +24,24 @@ firebase_admin.initialize_app(cred, {
 firebase_db = db.reference()
 
 # Directory where the files will be written and saved
-UPLOAD_FOLDER_TEXTS = '/Users/kfout/uploads'
+UPLOAD_FOLDER_TEXTS = '/Users/kfout/storage/text'
+UPLOAD_FOLDER_IMAGES = '/Users/kfout/storage/images'
 COMMANDS_FOLDER = '/Users/kfout/uploads'
 COMMANDS_FILE = 'instructions.json'
+DATA_JSON_FILE = os.path.join(UPLOAD_FOLDER_TEXTS, 'data.json')
 
+# Ensure the necessary folders exist
 # Ensure the necessary folders exist
 if not os.path.exists(UPLOAD_FOLDER_TEXTS):
     os.makedirs(UPLOAD_FOLDER_TEXTS)
 if not os.path.exists(COMMANDS_FOLDER):
     os.makedirs(COMMANDS_FOLDER)
+if not os.path.exists(UPLOAD_FOLDER_IMAGES):
+    os.makedirs(UPLOAD_FOLDER_IMAGES)
+
+if not os.path.exists(DATA_JSON_FILE):
+    with open(DATA_JSON_FILE, 'w') as file:
+        json.dump([], file)
 
 # Reference to your database
 #ref = db.reference('server/saving-data/fireblog')
@@ -60,8 +73,8 @@ def require_token(f):
 
 
 app = Flask(__name__)
-#CORS(app, resources={r"/api/*": {"origins": "https://cse123petfeeder.com"}})
-CORS(app, resources={r"/*": {"origins": "*"}})  # Adjust this as needed
+CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
+#CORS(app, resources={r"/*": {"origins": "*"}})  # Adjust this as needed
 
 app.secret_key = secrets.token_urlsafe(16)  # Generates a new key
 
@@ -197,16 +210,51 @@ def receive_data():
     return jsonify({"status": "Data successfully received"}), 20
 
 @app.route('/api/upload', methods=['POST'])
+@require_token
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
+    uploaded_file = request.files['file']
+    if uploaded_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-    file_path = os.path.join(UPLOAD_FOLDER_TEXTS, file.filename)
-    with open(file_path, 'a') as f:
-        f.write(file.read().decode('utf-8') + '\n')
-    return jsonify({"status": "success", "message": f"Line added to file {file.filename} successfully"})
+
+    # Determine the type of the uploaded file
+    filename = uploaded_file.filename.lower()
+    if filename.endswith('.txt'):
+        try:
+            # Receive a single line from the client
+            file_content = uploaded_file.read().decode('utf-8').strip()
+            if not file_content:
+                return jsonify({"error": "No content found in the uploaded file"}), 400
+
+            # Read existing data from the JSON file
+            with open(DATA_JSON_FILE, 'r') as file:
+                data = json.load(file)
+
+            # Append the new string content as a separate entry
+            data.append({"timestamp": datetime.now().isoformat(), "content": file_content})
+
+            # Write back the updated JSON data
+            with open(DATA_JSON_FILE, 'w') as file:
+                json.dump(data, file, indent=4)
+
+        except UnicodeDecodeError:
+            return jsonify({"error": "Invalid text encoding"}), 400
+
+    elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+        file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
+        # Process as a binary file
+        try:
+            with open(file_path, 'wb') as f:
+                f.write(uploaded_file.read())
+        except Exception as e:
+            return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+
+    else:
+        return jsonify({"error": "Unsupported file type"}), 400
+
+    print(f"Received file: {filename}, processed successfully.")
+    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
 
 @app.route('/api/commands', methods=['GET', 'POST'])
 @require_token
