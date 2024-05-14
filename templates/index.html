@@ -34,33 +34,56 @@
             height: 10px;
             margin-left: 5px;
         }
+        #buttonContainer {
+            display: flex;
+            flex-direction: row; /* Arrange buttons in a row */
+            flex-wrap: wrap; /* Allow wrapping to the next line */
+            justify-content: center; /* Center buttons horizontally */
+            align-items: center; /* Align buttons vertically */
+            width: 60%; /* Adjust the width as necessary */
+            padding: 20px;
+        }
+
         .button {
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
             border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            margin: 10px;
+            border-radius: 50%; /* Fully round */
+            width: 120px; /* Adjust size for better fit */
+            height: 120px; /* Same as width to keep the circle shape */
+            margin: 20px; /* Space between buttons */
             cursor: pointer;
-            box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .button:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly more opaque on hover */
         }
+
+        .button:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            background-color: rgba(255, 255, 255, 1); /* Solid white when active */
+        }
+
         .button-icon {
-            width: 60px;
-            height: 60px;
-            margin-right: 10px;
+            width: 70%; /* Adjust icon size to fit the button */
+            height: auto; /* Maintain aspect ratio */
         }
-        .button-text {
-            font-size: 16px;
-            color: #333;
-        }
+
+
+
+
+        /* .button-text {
+            display: none; /* Optional: hide text if not fitting well */
+        
+
         .schedule {
             background-color: rgba(255, 255, 255, 0.9);
             padding: 20px;
