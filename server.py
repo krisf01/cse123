@@ -8,6 +8,7 @@ import secrets
 import os
 import json
 import requests
+from datetime import datetime
 
 from datetime import datetime
 
@@ -23,8 +24,9 @@ firebase_db = db.reference()
 UPLOAD_FOLDER_TEXTS = '/Users/sriharshamaddala/storage/text'
 UPLOAD_FOLDER_IMAGES = '/Users/sriharshamaddala/storage/images'
 COMMANDS_FOLDER = '/Users/sriharshamaddala/uploads'
+COMMANDS_FILE = 'instructions.json'
 
-DATA_JSON_FILE = os.path.join(UPLOAD_FOLDER_TEXTS, 'data.json')
+DATA_TEXT_FILE = 'data.txt'
 
 # Ensure the necessary folders exist
 if not os.path.exists(UPLOAD_FOLDER_TEXTS):
@@ -32,8 +34,8 @@ if not os.path.exists(UPLOAD_FOLDER_TEXTS):
 if not os.path.exists(COMMANDS_FOLDER):
     os.makedirs(COMMANDS_FOLDER)
 
-if not os.path.exists(DATA_JSON_FILE):
-    with open(DATA_JSON_FILE, 'w') as file:
+if not os.path.exists(DATA_TEXT_FILE):
+    with open(DATA_TEXT_FILE, 'w') as file:
         json.dump([], file)
 
 # Reference to your database
@@ -301,6 +303,30 @@ def receive_data():
     
     return jsonify({"status": "Data successfully received"}), 20
 
+@app.route('/api/upload', methods=['POST'])
+def upload_content():
+    # Assuming content is sent as plain text in the body
+    content = request.data.decode('utf-8').strip()
+    if not content:
+        return jsonify({"error": "Empty content received"}), 400
+
+    try:
+        # Extract key and value from the content
+        key, value = content.split(':', 1)
+        key = key.strip().lower()  # e.g., 'food_level'
+        value = value.strip().lower()  # e.g., 'low'
+
+        # Update Firebase database
+        ref = db.reference('users/cse123petfeeder')
+        ref.update({key: value})
+
+    except ValueError:
+        return jsonify({"error": "Invalid content format, expected 'key: value'"}), 400
+
+    print(f"Processed content: {content}")
+    return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"})
+
+
 # @app.route('/api/upload', methods=['POST'])
 # @require_token
 # def upload_file():
@@ -310,32 +336,77 @@ def receive_data():
 #     if uploaded_file.filename == '':
 #         return jsonify({"error": "No selected file"}), 400
 
-#     # Determine the type of the uploaded file
 #     filename = uploaded_file.filename.lower()
-#     if filename.endswith('.txt'):
+#     if filename.endswith('test.txt'):
 #         try:
-#             # Receive a single line from the client
 #             file_content = uploaded_file.read().decode('utf-8').strip()
 #             if not file_content:
 #                 return jsonify({"error": "No content found in the uploaded file"}), 400
 
-#             # Read existing data from the JSON file
-#             with open(DATA_JSON_FILE, 'r') as file:
-#                 data = json.load(file)
+#             # Assuming the content is like 'food_level: low'
+#             key, value = file_content.split(':', 1)
+#             key = key.strip().lower()  # e.g., 'food_level'
+#             value = value.strip().lower()  # e.g., 'low'
 
-#             # Append the new string content as a separate entry
-#             data.append({"timestamp": datetime.now().isoformat(), "content": file_content})
+#             ref = firebase_db.child(f'users/cse123petfeeder')
 
-#             # Write back the updated JSON data
-#             with open(DATA_JSON_FILE, 'w') as file:
-#                 json.dump(data, file, indent=4)
+#             # Update the specific field
+#             ref.update({key: value})
 
 #         except UnicodeDecodeError:
 #             return jsonify({"error": "Invalid text encoding"}), 400
+#         except Exception as e:
+#             app.logger.error('Failed to update Firebase: %s', str(e))
+#             return jsonify({"error": str(e)}), 500
 
 #     elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
 #         file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-#         # Process as a binary file
+#         try:
+#             with open(file_path, 'wb') as f:
+#                 f.write(uploaded_file.read())
+#         except Exception as e:
+#             app.logger.error('Failed to save image: %s', str(e))
+#             return jsonify({"error": str(e)}), 500
+
+#     else:
+#         return jsonify({"error": "Unsupported file type"}), 400
+
+#     return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+
+# @app.route('/api/upload', methods=['POST'])
+# @require_token
+# def upload_file():
+#     if 'file' not in request.files:
+#         return jsonify({"error": "No file part"}), 400
+#     uploaded_file = request.files['file']
+#     if uploaded_file.filename == '':
+#         return jsonify({"error": "No selected file"}), 400
+
+#     filename = uploaded_file.filename.lower()
+#     if filename == 'data.json':
+#         try:
+#             file_content = json.loads(uploaded_file.read().decode('utf-8'))
+
+#             # Reference to your Firebase database where you want to update data
+#             ref = db.reference('users/cse123petfeeder')
+
+#             # Iterate through each item in the JSON and update Firebase accordingly
+#             for item in file_content:
+#                 content_type = item['content'].split(' ')[0].lower()  # 'water' or 'food'
+#                 level = item['content'].split(' ')[2].lower()  # 'high' or 'low'
+#                 if content_type in ['water', 'food']:
+#                     ref.update({
+#                         f"{content_type}_level": level,
+#                         f"{content_type}_timestamp": item['timestamp']
+#                     })
+
+#         except json.JSONDecodeError:
+#             return jsonify({"error": "Invalid JSON file"}), 400
+#         except Exception as e:
+#             return jsonify({"error": str(e)}), 500
+
+#     elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+#         file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
 #         try:
 #             with open(file_path, 'wb') as f:
 #                 f.write(uploaded_file.read())
@@ -347,52 +418,6 @@ def receive_data():
 
 #     print(f"Received file: {filename}, processed successfully.")
 #     return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
-
-@app.route('/api/upload', methods=['POST'])
-@require_token
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    uploaded_file = request.files['file']
-    if uploaded_file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
-    filename = uploaded_file.filename.lower()
-    if filename == 'data.json':
-        try:
-            file_content = json.loads(uploaded_file.read().decode('utf-8'))
-
-            # Reference to your Firebase database where you want to update data
-            ref = db.reference('users/cse123petfeeder')
-
-            # Iterate through each item in the JSON and update Firebase accordingly
-            for item in file_content:
-                content_type = item['content'].split(' ')[0].lower()  # 'water' or 'food'
-                level = item['content'].split(' ')[2].lower()  # 'high' or 'low'
-                if content_type in ['water', 'food']:
-                    ref.update({
-                        f"{content_type}_level": level,
-                        f"{content_type}_timestamp": item['timestamp']
-                    })
-
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON file"}), 400
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
-    elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
-        file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-        try:
-            with open(file_path, 'wb') as f:
-                f.write(uploaded_file.read())
-        except Exception as e:
-            return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
-
-    else:
-        return jsonify({"error": "Unsupported file type"}), 400
-
-    print(f"Received file: {filename}, processed successfully.")
-    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
 
 
 # @app.route('/api/upload', methods=['POST'])
