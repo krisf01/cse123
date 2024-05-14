@@ -38,6 +38,9 @@ if not os.path.exists(DATA_TEXT_FILE):
     with open(DATA_TEXT_FILE, 'w') as file:
         json.dump([], file)
 
+if not os.path.exists(UPLOAD_FOLDER_IMAGES):
+    os.makedirs(UPLOAD_FOLDER_IMAGES)
+
 # Reference to your database
 #ref = db.reference('server/saving-data/fireblog')
 #db = firestore.client()
@@ -325,6 +328,33 @@ def upload_content():
 
     print(f"Processed content: {content}")
     return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"})
+
+@app.route('/api/upload_picture', methods=['POST'])
+def upload_pic():
+   if 'file' not in request.files:
+       return jsonify({"error": "No file part"}), 400
+   uploaded_file = request.files['file']
+   if uploaded_file.filename == '':
+       return jsonify({"error": "No selected file"}), 400
+
+   filename = uploaded_file.filename.lower()
+
+   if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+       file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
+       try:
+           with open(file_path, 'wb') as f:
+               f.write(uploaded_file.read())
+       except Exception as e:
+           return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+
+
+   else:
+       return jsonify({"error": "Unsupported file type"}), 400
+
+
+   print(f"Received file: {filename}, processed successfully.")
+   return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+
 
 
 # @app.route('/api/upload', methods=['POST'])
