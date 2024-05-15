@@ -3,7 +3,7 @@ import json
 from functools import wraps
 from flask_cors import CORS
 import firebase_admin
-from firebase_admin import credentials, firestore, db
+from firebase_admin import credentials, firestore, db, storage
 import secrets
 import os
 import json
@@ -15,7 +15,8 @@ from datetime import datetime
 # Initialize Firebase Admin
 cred = credentials.Certificate('/Users/sriharshamaddala/cse123github/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/'
+    'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/',
+    'storageBucket':'cse123-bac2c.appspot.com'
 })
 
 firebase_db = db.reference()
@@ -329,32 +330,60 @@ def upload_content():
     print(f"Processed content: {content}")
     return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"})
 
+# @app.route('/api/upload_picture', methods=['POST'])
+# def upload_pic():
+#    if 'file' not in request.files:
+#        return jsonify({"error": "No file part"}), 400
+#    uploaded_file = request.files['file']
+#    if uploaded_file.filename == '':
+#        return jsonify({"error": "No selected file"}), 400
+
+#    filename = uploaded_file.filename.lower()
+
+#    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+#        file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
+#        try:
+#            with open(file_path, 'wb') as f:
+#                f.write(uploaded_file.read())
+#        except Exception as e:
+#            return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+
+
+#    else:
+#        return jsonify({"error": "Unsupported file type"}), 400
+
+
+#    print(f"Received file: {filename}, processed successfully.")
+#    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+
 @app.route('/api/upload_picture', methods=['POST'])
 def upload_pic():
-   if 'file' not in request.files:
-       return jsonify({"error": "No file part"}), 400
-   uploaded_file = request.files['file']
-   if uploaded_file.filename == '':
-       return jsonify({"error": "No selected file"}), 400
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    uploaded_file = request.files['file']
+    if uploaded_file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
 
-   filename = uploaded_file.filename.lower()
+    filename = uploaded_file.filename.lower()
 
-   if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
-       file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-       try:
-           with open(file_path, 'wb') as f:
-               f.write(uploaded_file.read())
-       except Exception as e:
-           return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+        try:
+            # Upload to Firebase Storage
+            bucket = storage.bucket()
+            blob = bucket.blob(f'images/{filename}')
+            blob.upload_from_file(uploaded_file)
+            blob.make_public()
 
+            file_url = blob.public_url
+            ref = db.reference('users/cse123petfeeder')
+            ref.update({'image_url': file_url})
+        except Exception as e:
+            return jsonify({"error": f"Failed to upload image to Firebase: {str(e)}"}), 500
+    else:
+        return jsonify({"error": "Unsupported file type"}), 400
 
-   else:
-       return jsonify({"error": "Unsupported file type"}), 400
-
-
-   print(f"Received file: {filename}, processed successfully.")
-   return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
-
+    print(f"Received file: {filename}, processed successfully.")
+    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully", "url": file_url})
 
 
 # @app.route('/api/upload', methods=['POST'])
