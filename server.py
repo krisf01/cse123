@@ -370,7 +370,7 @@ def upload_pic():
         try:
             # Upload to Firebase Storage
             bucket = storage.bucket()
-            blob = bucket.blob(f'images/{filename}')
+            blob = bucket.blob(f'/Users/sriharshamaddala/storage/images/{filename}')
             blob.upload_from_file(uploaded_file)
             blob.make_public()
 

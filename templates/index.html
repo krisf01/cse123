@@ -173,7 +173,7 @@
             <span class="button-text">Dispense Food</span>
         </button>
 
-        <button class="button" onclick="liveFeed()">
+        <button class="button" onclick="liveFeed(); sendPic();">
             <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
             <span class="button-text">Live Feed</span>
         </button>
@@ -327,6 +327,7 @@
 
     async function liveFeed() {
         const apiUrl = 'http://172.20.10.6:8080/api/live_feed';
+        await new Promise(resolve => setTimeout(resolve, 10000));
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
