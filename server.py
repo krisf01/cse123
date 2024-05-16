@@ -276,6 +276,27 @@ def get_device_status():
             return jsonify({"online": False}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/timer', methods=['GET', 'POST'])
+#@require_api_key
+def handle_timer():
+    ref = db.reference('users/cse123petfeeder/timer')
+    if request.method == 'POST':
+        data = request.json
+        try:
+            ref.set(data)
+            return jsonify({"status": "Timer updated successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            timer = ref.get()
+            if timer:
+                return jsonify(timer), 200
+            else:
+                return jsonify({"error": "No timer data found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

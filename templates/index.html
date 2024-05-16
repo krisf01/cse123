@@ -270,14 +270,15 @@
         <h1>CSE123's Pet Feeder</h1>
         <span>Device Status: <span class="status-indicator" id="statusIndicator"></span></span>
     </div>
-    
+   
     <div id="imageModal" class="modal">
         <div class="modal-content pretty-modal">
             <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
             <img id="popupImage" src="" style="width: 100%; border-radius: 12px;">
         </div>
     </div>
-
+ 
+ 
     <div id="levelModal" class="modal">
         <div class="modal-content pretty-modal">
             <span class="close" onclick="document.getElementById('levelModal').style.display='none'">&times;</span>
@@ -287,29 +288,34 @@
             </div>
         </div>
     </div>
-
+ 
+ 
     <div id="buttonContainer">
         <button class="button" onclick="fetchAndDisplayFood()">
             <img src="https://source.unsplash.com/60x60/?cat,food" alt="Food Icon" class="button-icon">
             <span class="button-text">Food Level</span>
         </button>
-
+ 
+ 
         <button class="button" onclick="dispenseFood()">
             <img src="https://source.unsplash.com/60x60/?dog,food" alt="Dispense Food" class="button-icon">
             <span class="button-text">Dispense Food</span>
         </button>
-
+ 
+ 
         <button class="button" onclick="liveFeed(); sendPic();">
             <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
             <span class="button-text">Live Feed</span>
         </button>
-
+ 
+ 
         <button class="button" onclick="fetchAndDisplayWater()">
             <img src="https://source.unsplash.com/60x60/?water,bowl" alt="Water Icon" class="button-icon">
             <span class="button-text">Water Level</span>
         </button>
     </div>
-
+ 
+ 
     <div class="schedule">
         <div class="schedule-item">
             <div class="time-picker">
@@ -318,7 +324,7 @@
                 <span>Dispense Food, Everyday</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="foodScheduleEnabled" checked>
+                <input type="checkbox" id="foodScheduleEnabled">
                 <span class="slider round"></span>
             </label>
         </div>
@@ -326,16 +332,17 @@
             <div class="time-picker">
                 <button class="edit-button" onclick="openTimePicker('water')">✎</button>
                 <span id="waterScheduleTime">12:00 PM</span>
-                <span>Dispense Water, Everyday</span>
+                <span>Dispense Food, Everyday</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="waterScheduleEnabled" checked>
+                <input type="checkbox" id="waterScheduleEnabled">
                 <span class="slider round"></span>
             </label>
         </div>
     </div>
     <div id="result"></div>
-
+ 
+ 
     <div id="timePickerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -367,33 +374,76 @@
             <button onclick="setTime()">Set</button>
         </div>
     </div>
-
+ 
+ 
     <script>
     let currentSchedule;
-
+ 
+ 
     function openTimePicker(schedule) {
         currentSchedule = schedule;
         document.getElementById('timePickerModal').style.display = 'block';
     }
-
+ 
+ 
     function closeTimePicker() {
         document.getElementById('timePickerModal').style.display = 'none';
     }
-
+ 
+ 
     function setTime() {
         const hour = document.getElementById('hour').value;
         const minute = document.getElementById('minute').value;
         const ampm = document.getElementById('ampm').value;
         const timeString = `${hour}:${minute} ${ampm}`;
-
+ 
+ 
         if (currentSchedule === 'food') {
             document.getElementById('foodScheduleTime').innerText = timeString;
         } else if (currentSchedule === 'water') {
             document.getElementById('waterScheduleTime').innerText = timeString;
         }
 
+        updateTimerInDatabase();
         closeTimePicker();
     }
+
+    async function updateTimerInDatabase() {
+        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
+        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
+
+        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
+        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+
+        const timerData = {
+            foodScheduleTime,
+            foodScheduleEnabled,
+            waterScheduleTime,
+            waterScheduleEnabled
+        };
+
+        const apiUrl = 'http://127.0.0.1:8080/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(timerData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Timer data updated:', data);
+        } catch (error) {
+            console.error('Error updating timer data:', error);
+        }
+    }
+
 
     async function fetchAndDisplayWater() {
         const apiUrl = 'http://127.0.0.1:8080/api/water_level';
@@ -436,7 +486,7 @@
             }
 
             const data = await response.json();
-            document.getElementById('levelsContent').innerHTML = `<p>Food Level: ${data.food_level}</p>`;
+            document.getElementById('levelsContent').innerHTML = `<p>Food Level: ${data.food_level}%</p>`;
             document.getElementById('levelModal').style.display = 'block';
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -471,7 +521,7 @@
     }
 
     async function sendPic() {
-        const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
+        const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
 
         try {
             const response = await fetch(apiUrl, {
@@ -554,7 +604,7 @@
             console.error('Error during registration:', error);
         });
     }
-    
+   
     function loginUser(event) {
         event.preventDefault(); // Stop the form from submitting normally
         const username = document.getElementById('login-username').value;
@@ -587,7 +637,7 @@
         });
     }
 
-    function checkSchedule() {
+    async function checkSchedule() {
         const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
         const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
 
@@ -605,9 +655,14 @@
         }
 
         if (waterScheduleEnabled && waterScheduleTime === currentTimeString) {
-            // Call the function to dispense water here
-            alert('Dispense Water');
+            dispenseFood();
         }
+    }
+
+    
+
+    window.onload = function() {
+        setInterval(checkSchedule, 60000);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -648,10 +703,40 @@
             console.error("Login form not found. Please check the form ID.");
         }
 
-        setInterval(checkSchedule, 60000); // Check schedule every minute
-        checkDeviceStatus(); // Check device status on load
-        setInterval(checkDeviceStatus, 5000); // Check device status every 5 seconds
+        document.getElementById('foodScheduleEnabled').addEventListener('change', updateTimerInDatabase);
+        document.getElementById('waterScheduleEnabled').addEventListener('change', updateTimerInDatabase);
+
+        setInterval(checkSchedule, 60000);
+        checkDeviceStatus();
+        setInterval(checkDeviceStatus, 5000); 
+        fetchTimerData(); 
     });
+
+    async function fetchTimerData() {
+    const apiUrl = 'http://127.0.0.1:8080/api/timer';
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById('foodScheduleTime').innerText = data.foodScheduleTime;
+        document.getElementById('foodScheduleEnabled').checked = data.foodScheduleEnabled;
+        document.getElementById('waterScheduleTime').innerText = data.waterScheduleTime;
+        document.getElementById('waterScheduleEnabled').checked = data.waterScheduleEnabled;
+    } catch (error) {
+        console.error('Error fetching timer data:', error);
+    }
+}
+
 
     async function checkDeviceStatus() {
         try {
