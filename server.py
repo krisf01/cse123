@@ -11,12 +11,12 @@ import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv('/var/www/html/.env')
+load_dotenv()
 
 from datetime import datetime
 
 # Initialize Firebase Admin
-cred = credentials.Certificate('/var/www/html/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
+cred = credentials.Certificate('/Users/kfout/cse123_test/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/'
 })
@@ -24,9 +24,9 @@ firebase_admin.initialize_app(cred, {
 firebase_db = db.reference()
 
 # Directory where the files will be written and saved
-UPLOAD_FOLDER_TEXTS = '/opt/petfeeder/texts'
-UPLOAD_FOLDER_IMAGES = '/opt/petfeeder/images'
-COMMANDS_FOLDER = '/opt/petfeeder/uploads'
+UPLOAD_FOLDER_TEXTS = '/Users/kfout/storage/text'
+UPLOAD_FOLDER_IMAGES = '/Users/kfout/storage/images'
+COMMANDS_FOLDER = '/Users/kfout/uploads'
 COMMANDS_FILE = 'instructions.json'
 DATA_JSON_FILE = os.path.join(UPLOAD_FOLDER_TEXTS, 'data.json')
 
@@ -67,8 +67,8 @@ def require_token(f):
 
 
 app = Flask(__name__)
-
-CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
+#CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
+CORS(app, resources={r"/*": {"origins": "*"}})  # Adjust this as needed
 
 app.secret_key = secrets.token_urlsafe(16)  # Generates a new key
 
@@ -88,14 +88,15 @@ def home():
     print("Rendering index.html with API Key:", session['api_key'])  # Debug print
     return render_template('index.html')
 
-#@app.route('/api/food_level', methods=['GET'])
-#def get_food_level():
-#    try:
-#        with open('status.json', 'r') as file:
-#            status = json.load(file)
-#        return jsonify({"food_level": status.get("food_level", "Unknown")}), 200
-#    except (FileNotFoundError, json.JSONDecodeError):
-#        return jsonify({"error": "Status file not found or is empty"}), 404
+
+# @app.route('/api/food_level', methods=['GET'])
+# def get_food_level():
+#     try:
+#         with open('status.json', 'r') as file:
+#             status = json.load(file)
+#         return jsonify({"food_level": status.get("food_level", "Unknown")}), 200
+#     except (FileNotFoundError, json.JSONDecodeError):
+#         return jsonify({"error": "Status file not found or is empty"}), 404
 
 # NEWEST
 @app.route('/api/food_level', methods=['GET'])
@@ -103,7 +104,7 @@ def get_food_level():
     try:
         ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
-
+        
         if entries:
             # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
             if 'food_level' in entries:
@@ -115,16 +116,14 @@ def get_food_level():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-#@app.route('/api/water_level', methods=['GET'])
-#def get_water_level():
-#    try:
-#        with open('status.json', 'r') as file:
-#            status = json.load(file)
-#        return jsonify({"water_level": status.get("water_level", "Unknown")}), 200
-#    except (FileNotFoundError, json.JSONDecodeError):
-#        return jsonify({"error": "Status file not found or is empty"}), 404
+# @app.route('/api/water_level', methods=['GET'])
+# def get_water_level():
+#     try:
+#         with open('status.json', 'r') as file:
+#             status = json.load(file)
+#         return jsonify({"water_level": status.get("water_level", "Unknown")}), 200
+#     except (FileNotFoundError, json.JSONDecodeError):
+#         return jsonify({"error": "Status file not found or is empty"}), 404
 
 # NEWEST
 @app.route('/api/water_level', methods=['GET'])
@@ -132,7 +131,7 @@ def get_water_level():
     try:
         ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
-
+        
         if entries:
             # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
             if 'water_level' in entries:
@@ -156,7 +155,7 @@ def handle_buttons():
         return jsonify({"response": "Food Level Checked"})
     else:
         return jsonify({"response": "Unknown Action"}), 400
-
+    
 def generate_api_key():
     return secrets.token_urlsafe(16)  # Adjust the length as needed
 
@@ -192,6 +191,7 @@ def validate_api_key(key):
                 return True
     return False
 
+    
 # API to update levels, requiring API key
 @app.route('/api/update_levels', methods=['POST'])
 @require_api_key
@@ -202,26 +202,25 @@ def update_levels():
         ref.push(data)
         return jsonify({"status": "Data updated in Firebase"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
+        return jsonify({"error": str(e)}), 500 
+    
 @app.route('/api/get_levels', methods=['GET'])
 @require_api_key
 def get_levels():
     try:
         ref = db.reference('food_water_levels')
         # Assuming you want to get the latest entry or customize as needed
-        data = ref.get()
+        data = ref.get()  
         return jsonify(data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route('/api/live_feed', methods=['GET'])
 def get_pic():
     try:
         ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
-
+        
         if entries:
             # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
             if 'image_url' in entries:
@@ -232,7 +231,7 @@ def get_pic():
             return jsonify({"error": "No data found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route('/api/receive_data', methods=['POST'])
 @require_api_key  # This uses your predefined require_api_key decorator
 def receive_data():
@@ -244,55 +243,55 @@ def receive_data():
     # Example of saving to Firebase:
     ref = db.reference('food_water_levels')
     ref.push(data)
-
+    
     return jsonify({"status": "Data successfully received"}), 20
 
-#@app.route('/api/upload', methods=['POST'])
-#@require_token
-#def upload_file():
-#    if 'file' not in request.files:
-#        return jsonify({"error": "No file part"}), 400
-#    uploaded_file = request.files['file']
-#    if uploaded_file.filename == '':
-#        return jsonify({"error": "No selected file"}), 400
+# @app.route('/api/upload', methods=['POST'])
+# @require_token
+# def upload_file():
+#     if 'file' not in request.files:
+#         return jsonify({"error": "No file part"}), 400
+#     uploaded_file = request.files['file']
+#     if uploaded_file.filename == '':
+#         return jsonify({"error": "No selected file"}), 400
 
-    # Determine the type of the uploaded file
-#    filename = uploaded_file.filename.lower()
-#    if filename.endswith('.txt'):
-#        try:
-            # Receive a single line from the client
-#            file_content = uploaded_file.read().decode('utf-8').strip()
-#            if not file_content:
-#                return jsonify({"error": "No content found in the uploaded file"}), 400
+#     # Determine the type of the uploaded file
+#     filename = uploaded_file.filename.lower()
+#     if filename.endswith('.txt'):
+#         try:
+#             # Receive a single line from the client
+#             file_content = uploaded_file.read().decode('utf-8').strip()
+#             if not file_content:
+#                 return jsonify({"error": "No content found in the uploaded file"}), 400
 
-            # Read existing data from the JSON file
-#            with open(DATA_JSON_FILE, 'r') as file:
-#                data = json.load(file)
+#             # Read existing data from the JSON file
+#             with open(DATA_JSON_FILE, 'r') as file:
+#                 data = json.load(file)
 
-            # Append the new string content as a separate entry
-#            data.append({"timestamp": datetime.now().isoformat(), "content": file_content})
+#             # Append the new string content as a separate entry
+#             data.append({"timestamp": datetime.now().isoformat(), "content": file_content})
 
-            # Write back the updated JSON data
-#            with open(DATA_JSON_FILE, 'w') as file:
-#                json.dump(data, file, indent=4)
+#             # Write back the updated JSON data
+#             with open(DATA_JSON_FILE, 'w') as file:
+#                 json.dump(data, file, indent=4)
 
-#        except UnicodeDecodeError:
-#            return jsonify({"error": "Invalid text encoding"}), 400
+#         except UnicodeDecodeError:
+#             return jsonify({"error": "Invalid text encoding"}), 400
 
-#    elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
-#        file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-        # Process as a binary file
-#        try:
-#            with open(file_path, 'wb') as f:
-#                f.write(uploaded_file.read())
-#        except Exception as e:
-#            return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+#     elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
+#         file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
+#         # Process as a binary file
+#         try:
+#             with open(file_path, 'wb') as f:
+#                 f.write(uploaded_file.read())
+#         except Exception as e:
+#             return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
 
-#   else:
-#        return jsonify({"error": "Unsupported file type"}), 400
+#     else:
+#         return jsonify({"error": "Unsupported file type"}), 400
 
-#    print(f"Received file: {filename}, processed successfully.")
-#    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+#     print(f"Received file: {filename}, processed successfully.")
+#     return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
 
 # NEWEST
 @app.route('/api/upload', methods=['POST'])
@@ -340,6 +339,7 @@ def upload_file():
 
     print(f"Received file: {filename}, processed successfully.")
     return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+
 
 @app.route('/api/commands', methods=['GET', 'POST'])
 @require_token

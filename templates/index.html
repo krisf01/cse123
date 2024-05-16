@@ -197,7 +197,7 @@
             <span class="button-text">Dispense Food</span>
         </button>
 
-        <button class="button" onclick="liveFeed()">
+        <button class="button" onclick="sendPic() ; liveFeed();">
             <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
             <span class="button-text">Live Feed</span>
         </button>
@@ -227,7 +227,7 @@
 
 <script>
     async function fetchAndDisplayWater() {
-    const apiUrl = 'http://127.0.0.1:8080/api/water_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://10.0.0.98:8080/api/water_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -251,7 +251,7 @@
 }
 
     async function fetchAndDisplayFood() {
-    const apiUrl = 'http://127.0.0.1:8080/api/food_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://10.0.0.98 :8080/api/food_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -275,7 +275,7 @@
 }
 
 async function dispenseFood() {
-    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+    const apiUrl = 'http://10.0.0.98:8080/api/commands'; // Correct endpoint that receives the dispense command
 
     try {
         const response = await fetch(apiUrl, {
@@ -328,7 +328,8 @@ async function dispenseFood() {
 // }
 
 async function liveFeed() {
-        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        const apiUrl = 'http://10.0.0.98:8080/api/live_feed';
+        await new Promise(resolve => setTimeout(resolve, 10000));
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -358,13 +359,39 @@ async function liveFeed() {
         }
     }
 
+    async function sendPic() {
+        const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data.message); // Log or handle the response appropriately
+            alert('Capture command sent: ' + data.message);
+        } catch (error) {
+            console.error('Error sending capture command:', error);
+            alert('Error sending capture command. Please try again.');
+        }
+        }
+
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
 
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('http://127.0.0.1:8080/register', {
+    fetch('http://10.0.0.98:8080/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -391,7 +418,7 @@ function loginUser(event) {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('http://127.0.0.1:8080/login', {
+    fetch('http://10.0.0.98:8080/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -426,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            fetch('http://127.0.0.1:8080/login', {
+            fetch('http://10.0.0.98:8080/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

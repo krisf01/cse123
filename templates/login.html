@@ -69,7 +69,7 @@
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
         
-            fetch('/login', {
+            fetch('http://10.0.0.98:8080/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,7 +90,7 @@
                 alert('Login failed: ' + data.error);
             }
         })
-        .catch(error => {
+            .catch(error => {
                 console.error('Error during login:', error);
                 alert('Login failed: Please check console for more details.');
             });
