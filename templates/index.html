@@ -27,12 +27,16 @@
             text-align: center;
         }
         .status-indicator {
-            background-color: #00e600;
-            border-radius: 50%;
             display: inline-block;
             width: 10px;
             height: 10px;
             margin-left: 5px;
+        }
+        .status-online {
+            background-color: #00e600;
+        }
+        .status-offline {
+            background-color: #ff0000;
         }
         #buttonContainer {
             display: flex;
@@ -43,7 +47,6 @@
             width: 60%; /* Adjust the width as necessary */
             padding: 20px;
         }
-
         .button {
             background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
             border: none;
@@ -59,31 +62,20 @@
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
         .button:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
             background-color: rgba(255, 255, 255, 0.9); /* Slightly more opaque on hover */
         }
-
         .button:active {
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
             background-color: rgba(255, 255, 255, 1); /* Solid white when active */
         }
-
         .button-icon {
             width: 70%; /* Adjust icon size to fit the button */
             height: auto; /* Maintain aspect ratio */
         }
-
-
-
-
-        /* .button-text {
-            display: none; /* Optional: hide text if not fitting well */
-        
-
         .schedule {
             background-color: rgba(255, 255, 255, 0.9);
             padding: 20px;
@@ -100,6 +92,29 @@
         }
         .schedule-item:not(:last-child) {
             border-bottom: 1px solid #e6e6e6;
+        }
+        .time-picker {
+            display: flex;
+            align-items: center;
+        }
+        .time-picker span {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .time-picker select {
+            margin: 0 5px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+        .edit-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            color: #2196F3;
         }
         .switch {
             position: relative;
@@ -147,18 +162,129 @@
         .slider.round:before {
             border-radius: 50%;
         }
+        /* Modal styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .scrolling-time-picker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .scrolling-time-picker select {
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 60px;
+        }
+        .scrolling-time-picker select#ampm {
+            width: 80px;
+        }
+        /* Pretty modal styling */
+        .pretty-modal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            animation: scaleIn 0.3s ease;
+        }
+        .pretty-modal h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .pretty-modal p {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #666;
+        }
+        .pretty-modal .close {
+            align-self: flex-end;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .pretty-modal .close:hover {
+            color: #333;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); }
+            to { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>CSE123's Pet Feeder</h1>
-        <span>Online <span class="status-indicator"></span></span>
+        <span>Device Status: <span class="status-indicator" id="statusIndicator"></span></span>
     </div>
     
-    <div id="imageModal" style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-        <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px;">
-            <span onclick="document.getElementById('imageModal').style.display='none'" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-            <img id="popupImage" src="" style="width: 100%;">
+    <div id="imageModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+            <img id="popupImage" src="" style="width: 100%; border-radius: 12px;">
+        </div>
+    </div>
+
+    <div id="levelModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('levelModal').style.display='none'">&times;</span>
+            <h2>Food and Water Levels</h2>
+            <div id="levelsContent">
+                <!-- Food and water levels will be displayed here -->
+            </div>
         </div>
     </div>
 
@@ -186,25 +312,91 @@
 
     <div class="schedule">
         <div class="schedule-item">
-            <span>12pm Dispense Food, Everyday</span>
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('food')">✎</button>
+                <span id="foodScheduleTime">12:00 PM</span>
+                <span>Dispense Food, Everyday</span>
+            </div>
             <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="foodScheduleEnabled" checked>
                 <span class="slider round"></span>
             </label>
         </div>
         <div class="schedule-item">
-            <span>12pm Dispense Water, Everyday</span>
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('water')">✎</button>
+                <span id="waterScheduleTime">12:00 PM</span>
+                <span>Dispense Water, Everyday</span>
+            </div>
             <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="waterScheduleEnabled" checked>
                 <span class="slider round"></span>
             </label>
         </div>
     </div>
     <div id="result"></div>
 
+    <div id="timePickerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Time</h2>
+                <span class="close" onclick="closeTimePicker()">&times;</span>
+            </div>
+            <div class="scrolling-time-picker">
+                <select id="hour">
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <span>:</span>
+                <select id="minute">
+                    <script>
+                        for (let i = 0; i < 60; i++) {
+                            let padded = i.toString().padStart(2, '0');
+                            document.write(`<option value="${padded}">${padded}</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="ampm">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                </select>
+            </div>
+            <button onclick="setTime()">Set</button>
+        </div>
+    </div>
+
     <script>
+    let currentSchedule;
+
+    function openTimePicker(schedule) {
+        currentSchedule = schedule;
+        document.getElementById('timePickerModal').style.display = 'block';
+    }
+
+    function closeTimePicker() {
+        document.getElementById('timePickerModal').style.display = 'none';
+    }
+
+    function setTime() {
+        const hour = document.getElementById('hour').value;
+        const minute = document.getElementById('minute').value;
+        const ampm = document.getElementById('ampm').value;
+        const timeString = `${hour}:${minute} ${ampm}`;
+
+        if (currentSchedule === 'food') {
+            document.getElementById('foodScheduleTime').innerText = timeString;
+        } else if (currentSchedule === 'water') {
+            document.getElementById('waterScheduleTime').innerText = timeString;
+        }
+
+        closeTimePicker();
+    }
+
     async function fetchAndDisplayWater() {
-        const apiUrl = 'http://172.20.10.6:8080/api/water_level';
+        const apiUrl = 'http://127.0.0.1:8080/api/water_level';
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -219,15 +411,17 @@
             }
 
             const data = await response.json();
-            document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`;
+            document.getElementById('levelsContent').innerHTML = `<p>Water Level: ${data.water_level}</p>`;
+            document.getElementById('levelModal').style.display = 'block';
         } catch (error) {
             console.error('Error fetching data:', error);
-            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
         }
     }
 
     async function fetchAndDisplayFood() {
-        const apiUrl = 'http://172.20.10.6:8080/api/food_level';
+        const apiUrl = 'http://127.0.0.1:8080/api/food_level';
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -242,15 +436,17 @@
             }
 
             const data = await response.json();
-            document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`;
+            document.getElementById('levelsContent').innerHTML = `<p>Food Level: ${data.food_level}</p>`;
+            document.getElementById('levelModal').style.display = 'block';
         } catch (error) {
             console.error('Error fetching data:', error);
-            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
         }
     }
 
     async function dispenseFood() {
-        const apiUrl = 'http://172.20.10.6:8080/api/commands';
+        const apiUrl = 'http://127.0.0.1:8080/api/commands';
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -298,36 +494,11 @@
             console.error('Error sending capture command:', error);
             alert('Error sending capture command. Please try again.');
         }
-        }
-
-    // async function liveFeed() {
-    //     const apiUrl = 'http://127.0.0.1:8080/api/commands';
-    //     try {
-    //         const response = await fetch(apiUrl, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({ command: "CAPTURE" })
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error(`HTTP error! Status: ${response.status}`);
-    //         }
-
-    //         const data = await response.json();
-    //         console.log('Response from server:', data.message);
-    //         alert('Capture command sent: ' + data.message);
-    //     } catch (error) {
-    //         console.error('Error sending capture command:', error);
-    //         alert('Error sending capture command. Please try again.');
-    //     }
-    // }
+    }
 
     async function liveFeed() {
-        const apiUrl = 'http://172.20.10.6:8080/api/live_feed';
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        await new Promise(resolve => setTimeout(resolve, 35000));
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -350,115 +521,158 @@
             }else{
                 throw new Error('No image URL found.');
             }
-            //document.getElementById('result').innerHTML = `<h2>Image URL: ${data.image_url}</h2>`;
         } catch (error) {
             console.error('Error fetching data:', error);
             document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
     }
 
-function registerUser(event) {
-    event.preventDefault(); // Prevent the default form submission
+    function registerUser(event) {
+        event.preventDefault(); // Prevent the default form submission
 
-    const username = document.getElementById('register-username').value;
-    const password = document.getElementById('register-password').value;
+        const username = document.getElementById('register-username').value;
+        const password = document.getElementById('register-password').value;
 
-    fetch('http://10.0.0.98:8080:8080/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username: username, password: password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.api_key) {
-            console.log('Registration successful, API Key:', data.api_key);
-            // You can update the DOM to show the API key or redirect the user
-        } else {
-            console.log('Registration failed:', data.error);
-            // Update the DOM to inform the user of a failed registration
-        }
-    })
-    .catch(error => {
-        console.error('Error during registration:', error);
-    });
-}
-    
-function loginUser(event) {
-    event.preventDefault(); // Stop the form from submitting normally
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
-    fetch('http://172.20.10.6:8080/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: username, password: password })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('HTTP status ' + response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.api_key) {
-            sessionStorage.setItem('api_key', data.api_key);
-            alert('Login successful! API Key: ' + data.api_key);
-        } else {
-            alert('Login failed: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error during login:', error);
-        alert('Login failed: Please check console for more details.');
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-
-            fetch('http://172.20.10.6:8080/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username: username, password: password })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('HTTP status ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.api_key) {
-                    sessionStorage.setItem('api_key', data.api_key);
-                    window.location.href = '/'; // Redirect to the main page
-                } else {
-                    alert('Login failed: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error during login:', error);
-                alert('Login failed: Please check console for more details.');
-            });
+        fetch('http://10.0.0.98:8080:8080/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: username, password: password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.api_key) {
+                console.log('Registration successful, API Key:', data.api_key);
+                // You can update the DOM to show the API key or redirect the user
+            } else {
+                console.log('Registration failed:', data.error);
+                // Update the DOM to inform the user of a failed registration
+            }
+        })
+        .catch(error => {
+            console.error('Error during registration:', error);
         });
-    } else {
-        console.error("Login form not found. Please check the form ID.");
     }
-});
+    
+    function loginUser(event) {
+        event.preventDefault(); // Stop the form from submitting normally
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
 
+        fetch('http://127.0.0.1:8080/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: username, password: password })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP status ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.api_key) {
+                sessionStorage.setItem('api_key', data.api_key);
+                alert('Login successful! API Key: ' + data.api_key);
+            } else {
+                alert('Login failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error during login:', error);
+            alert('Login failed: Please check console for more details.');
+        });
+    }
 
-</script>
+    function checkSchedule() {
+        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
+        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
 
+        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
+        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+
+        const now = new Date();
+        const currentHour = now.getHours() % 12 || 12;
+        const currentMinute = now.getMinutes();
+        const currentAMPM = now.getHours() >= 12 ? 'PM' : 'AM';
+        const currentTimeString = `${currentHour}:${currentMinute.toString().padStart(2, '0')} ${currentAMPM}`;
+
+        if (foodScheduleEnabled && foodScheduleTime === currentTimeString) {
+            dispenseFood();
+        }
+
+        if (waterScheduleEnabled && waterScheduleTime === currentTimeString) {
+            // Call the function to dispense water here
+            alert('Dispense Water');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+
+                fetch('http://127.0.0.1:8080/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP status ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.api_key) {
+                        sessionStorage.setItem('api_key', data.api_key);
+                        window.location.href = '/'; // Redirect to the main page
+                    } else {
+                        alert('Login failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during login:', error);
+                    alert('Login failed: Please check console for more details.');
+                });
+            });
+        } else {
+            console.error("Login form not found. Please check the form ID.");
+        }
+
+        setInterval(checkSchedule, 60000); // Check schedule every minute
+        checkDeviceStatus(); // Check device status on load
+        setInterval(checkDeviceStatus, 5000); // Check device status every 5 seconds
+    });
+
+    async function checkDeviceStatus() {
+        try {
+            const response = await fetch('http://127.0.0.1:8080/api/device_status');
+            if (response.ok) {
+                const data = await response.json();
+                const statusIndicator = document.getElementById('statusIndicator');
+                if (data.online) {
+                    statusIndicator.classList.remove('status-offline');
+                    statusIndicator.classList.add('status-online');
+                } else {
+                    statusIndicator.classList.remove('status-online');
+                    statusIndicator.classList.add('status-offline');
+                }
+            } else {
+                console.error('Failed to fetch device status');
+            }
+        } catch (error) {
+            console.error('Error fetching device status:', error);
+        }
+    }
+    </script>
 </body>
-
 </html>
