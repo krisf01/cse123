@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, session, flash
+from flask import Flask, request, jsonify, render_template, redirect, session
 from functools import wraps
 from flask_cors import CORS
 import firebase_admin
@@ -6,7 +6,7 @@ from firebase_admin import credentials, db, storage
 import secrets
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Initialize Firebase Admin
 cred = credentials.Certificate('/Users/sriharshamaddala/cse123github/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
@@ -21,7 +21,6 @@ UPLOAD_FOLDER_TEXTS = '/Users/sriharshamaddala/storage/text'
 UPLOAD_FOLDER_IMAGES = '/Users/sriharshamaddala/storage/images'
 COMMANDS_FOLDER = '/Users/sriharshamaddala/uploads'
 COMMANDS_FILE = 'instructions.json'
-
 DATA_TEXT_FILE = 'data.txt'
 
 if not os.path.exists(UPLOAD_FOLDER_TEXTS):
@@ -53,7 +52,6 @@ def require_token(f):
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
 app.secret_key = secrets.token_urlsafe(16)
 
 @app.route('/login', methods=['GET'])
@@ -189,7 +187,7 @@ def receive_data():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_content():
-    content = request.data.decode('utf-8').strip()
+    content = request.data.decode('utf-8').strip
     if not content:
         return jsonify({"error": "Empty content received"}), 400
 
@@ -265,20 +263,31 @@ def handle_commands():
                 json.dump(commands, file)
             return jsonify({"commands": commands}), 200
 
-@app.route('/api/device_status', methods=['GET'])
+@app.route('/api/device_status', methods=['GET', 'POST'])
 def get_device_status():
-    try:
-        ref = db.reference('device_status')
-        status = ref.get()
-        if status and 'online' in status:
-            return jsonify({"online": status['online']}), 200
-        else:
-            return jsonify({"online": False}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+    if request.method == 'POST':
+        try:
+            status = request.json.get('online')
+            ref = db.reference('device_status')
+            ref.set({"online": status, "last_heartbeat": datetime.now().isoformat()})
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            ref = db.reference('device_status')
+            status = ref.get()
+            if status and 'online' in status and 'last_heartbeat' in status:
+                last_heartbeat = datetime.fromisoformat(status['last_heartbeat'])
+                if datetime.now() - last_heartbeat > timedelta(minutes=2):  # Consider offline if no heartbeat in the last 2 minutes
+                    return jsonify({"online": False}), 200
+                return jsonify({"online": status['online']}), 200
+            else:
+                return jsonify({"online": False}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
 @app.route('/api/timer', methods=['GET', 'POST'])
-#@require_api_key
 def handle_timer():
     ref = db.reference('users/cse123petfeeder/timer')
     if request.method == 'POST':

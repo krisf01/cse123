@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-image: url('https://source.unsplash.com/1600x900/?pets'); /* Change to an appropriate background */
+            background-image: url('https://source.unsplash.com/1600x900/?pets');
             background-size: cover;
             color: #333;
             margin: 0;
@@ -16,46 +16,52 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            overflow: hidden;
         }
         .header {
             background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px 40px;
+            padding: 10px 20px;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-            width: 80%;
+            width: 90%;
             text-align: center;
         }
         .status-indicator {
+            background-color: #ccc;
+            border-radius: 50%;
             display: inline-block;
             width: 10px;
             height: 10px;
             margin-left: 5px;
+            transition: background-color 0.3s ease;
         }
-        .status-online {
+        .status-indicator.online {
             background-color: #00e600;
         }
-        .status-offline {
+        .status-indicator.offline {
             background-color: #ff0000;
         }
         #buttonContainer {
             display: flex;
-            flex-direction: row; /* Arrange buttons in a row */
-            flex-wrap: wrap; /* Allow wrapping to the next line */
-            justify-content: center; /* Center buttons horizontally */
-            align-items: center; /* Align buttons vertically */
-            width: 60%; /* Adjust the width as necessary */
-            padding: 20px;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            width: 90%;
+            padding: 10px;
         }
         .button {
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+            background-color: rgba(255, 255, 255, 0.8);
             border: none;
-            border-radius: 50%; /* Fully round */
-            width: 120px; /* Adjust size for better fit */
-            height: 120px; /* Same as width to keep the circle shape */
-            margin: 20px; /* Space between buttons */
+            border-radius: 50%;
+            width: 20vw;
+            height: 20vw;
+            max-width: 120px;
+            max-height: 120px;
+            margin: 10px;
             cursor: pointer;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -65,24 +71,24 @@
         .button:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.9); /* Slightly more opaque on hover */
+            background-color: rgba(255, 255, 255, 0.9);
         }
         .button:active {
             transform: translateY(-2px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
-            background-color: rgba(255, 255, 255, 1); /* Solid white when active */
+            background-color: rgba(255, 255, 255, 1);
         }
         .button-icon {
-            width: 70%; /* Adjust icon size to fit the button */
-            height: auto; /* Maintain aspect ratio */
+            width: 70%;
+            height: auto;
         }
         .schedule {
             background-color: rgba(255, 255, 255, 0.9);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-            width: 80%;
-            margin: 20px;
+            width: 90%;
+            margin: 10px;
         }
         .schedule-item {
             display: flex;
@@ -162,25 +168,24 @@
         .slider.round:before {
             border-radius: 50%;
         }
-        /* Modal styling */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
+            display: none;
+            position: fixed;
+            z-index: 1;
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgb(0,0,0); /* Fallback color */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; /* 15% from the top and centered */
+            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
+            width: 80%;
             max-width: 500px;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -228,7 +233,6 @@
         .scrolling-time-picker select#ampm {
             width: 80px;
         }
-        /* Pretty modal styling */
         .pretty-modal {
             display: flex;
             flex-direction: column;
@@ -263,22 +267,36 @@
             from { transform: scale(0.9); }
             to { transform: scale(1); }
         }
+        @media (max-width: 768px) {
+            .header {
+                font-size: 4vw;
+            }
+            .button {
+                width: 30vw;
+                height: 30vw;
+            }
+            .button-text {
+                font-size: 3vw;
+            }
+            .schedule {
+                font-size: 3vw;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>CSE123's Pet Feeder</h1>
-        <span>Device Status: <span class="status-indicator" id="statusIndicator"></span></span>
+        <span>Online <span id="status-indicator" class="status-indicator"></span><span id="status-text">Offline</span></span>
     </div>
-   
+
     <div id="imageModal" class="modal">
         <div class="modal-content pretty-modal">
             <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
             <img id="popupImage" src="" style="width: 100%; border-radius: 12px;">
         </div>
     </div>
- 
- 
+
     <div id="levelModal" class="modal">
         <div class="modal-content pretty-modal">
             <span class="close" onclick="document.getElementById('levelModal').style.display='none'">&times;</span>
@@ -288,61 +306,63 @@
             </div>
         </div>
     </div>
- 
- 
+
     <div id="buttonContainer">
         <button class="button" onclick="fetchAndDisplayFood()">
             <img src="https://source.unsplash.com/60x60/?cat,food" alt="Food Icon" class="button-icon">
             <span class="button-text">Food Level</span>
         </button>
- 
- 
+
         <button class="button" onclick="dispenseFood()">
             <img src="https://source.unsplash.com/60x60/?dog,food" alt="Dispense Food" class="button-icon">
             <span class="button-text">Dispense Food</span>
         </button>
- 
- 
+
         <button class="button" onclick="liveFeed(); sendPic();">
             <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
             <span class="button-text">Live Feed</span>
         </button>
- 
- 
+
         <button class="button" onclick="fetchAndDisplayWater()">
             <img src="https://source.unsplash.com/60x60/?water,bowl" alt="Water Icon" class="button-icon">
             <span class="button-text">Water Level</span>
         </button>
     </div>
- 
- 
+
     <div class="schedule">
         <div class="schedule-item">
             <div class="time-picker">
-                <button class="edit-button" onclick="openTimePicker('food')">✎</button>
-                <span id="foodScheduleTime">12:00 PM</span>
+                <button class="edit-button" onclick="openTimePicker('food1')">✎</button>
+                <span id="foodScheduleTime1">12:00 PM</span>
                 <span>Dispense Food, Everyday</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="foodScheduleEnabled">
+                <input type="checkbox" id="foodScheduleEnabled1">
                 <span class="slider round"></span>
             </label>
+            <select id="foodPortion1">
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+            </select>
         </div>
         <div class="schedule-item">
             <div class="time-picker">
-                <button class="edit-button" onclick="openTimePicker('water')">✎</button>
-                <span id="waterScheduleTime">12:00 PM</span>
+                <button class="edit-button" onclick="openTimePicker('food2')">✎</button>
+                <span id="foodScheduleTime2">2:56 PM</span>
                 <span>Dispense Food, Everyday</span>
             </div>
             <label class="switch">
-                <input type="checkbox" id="waterScheduleEnabled">
+                <input type="checkbox" id="foodScheduleEnabled2">
                 <span class="slider round"></span>
             </label>
+            <select id="foodPortion2">
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+            </select>
         </div>
     </div>
     <div id="result"></div>
- 
- 
+
     <div id="timePickerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -374,34 +394,29 @@
             <button onclick="setTime()">Set</button>
         </div>
     </div>
- 
- 
+
     <script>
     let currentSchedule;
- 
- 
+
     function openTimePicker(schedule) {
         currentSchedule = schedule;
         document.getElementById('timePickerModal').style.display = 'block';
     }
- 
- 
+
     function closeTimePicker() {
         document.getElementById('timePickerModal').style.display = 'none';
     }
- 
- 
+
     function setTime() {
         const hour = document.getElementById('hour').value;
         const minute = document.getElementById('minute').value;
         const ampm = document.getElementById('ampm').value;
         const timeString = `${hour}:${minute} ${ampm}`;
- 
- 
-        if (currentSchedule === 'food') {
-            document.getElementById('foodScheduleTime').innerText = timeString;
-        } else if (currentSchedule === 'water') {
-            document.getElementById('waterScheduleTime').innerText = timeString;
+
+        if (currentSchedule === 'food1') {
+            document.getElementById('foodScheduleTime1').innerText = timeString;
+        } else if (currentSchedule === 'food2') {
+            document.getElementById('foodScheduleTime2').innerText = timeString;
         }
 
         updateTimerInDatabase();
@@ -409,17 +424,21 @@
     }
 
     async function updateTimerInDatabase() {
-        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
-        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
+        const foodScheduleTime1 = document.getElementById('foodScheduleTime1').innerText;
+        const foodScheduleEnabled1 = document.getElementById('foodScheduleEnabled1').checked;
+        const foodPortion1 = document.getElementById('foodPortion1').value;
 
-        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
-        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+        const foodScheduleTime2 = document.getElementById('foodScheduleTime2').innerText;
+        const foodScheduleEnabled2 = document.getElementById('foodScheduleEnabled2').checked;
+        const foodPortion2 = document.getElementById('foodPortion2').value;
 
         const timerData = {
-            foodScheduleTime,
-            foodScheduleEnabled,
-            waterScheduleTime,
-            waterScheduleEnabled
+            foodScheduleTime1,
+            foodScheduleEnabled1,
+            foodPortion1,
+            foodScheduleTime2,
+            foodScheduleEnabled2,
+            foodPortion2
         };
 
         const apiUrl = 'http://127.0.0.1:8080/api/timer';
@@ -444,6 +463,36 @@
         }
     }
 
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchTimerData();
+    });
+
+    async function fetchTimerData() {
+        const apiUrl = 'http://127.0.0.1:8080/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            document.getElementById('foodScheduleTime1').innerText = data.foodScheduleTime1;
+            document.getElementById('foodScheduleEnabled1').checked = data.foodScheduleEnabled1;
+            document.getElementById('foodPortion1').value = data.foodPortion1;
+            document.getElementById('foodScheduleTime2').innerText = data.foodScheduleTime2;
+            document.getElementById('foodScheduleEnabled2').checked = data.foodScheduleEnabled2;
+            document.getElementById('foodPortion2').value = data.foodPortion2;
+        } catch (error) {
+            console.error('Error fetching timer data:', error);
+        }
+    }
 
     async function fetchAndDisplayWater() {
         const apiUrl = 'http://127.0.0.1:8080/api/water_level';
@@ -521,7 +570,7 @@
     }
 
     async function sendPic() {
-        const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+        const apiUrl = 'http://127.0.0.1:8080/api/commands';
 
         try {
             const response = await fetch(apiUrl, {
@@ -530,7 +579,7 @@
                     'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+                body: JSON.stringify({ command: "CAPTURE" })
             });
 
             if (!response.ok) {
@@ -538,7 +587,7 @@
             }
 
             const data = await response.json();
-            console.log('Response from server:', data.message); // Log or handle the response appropriately
+            console.log('Response from server:', data.message);
             alert('Capture command sent: ' + data.message);
         } catch (error) {
             console.error('Error sending capture command:', error);
@@ -567,7 +616,7 @@
                 const imageModal = document.getElementById('imageModal');
                 const popupImage = document.getElementById('popupImage');
                 popupImage.src = data.image_url;
-                imageModal.style.display = 'block'; // Show the modal
+                imageModal.style.display = 'block';
             }else{
                 throw new Error('No image URL found.');
             }
@@ -578,7 +627,7 @@
     }
 
     function registerUser(event) {
-        event.preventDefault(); // Prevent the default form submission
+        event.preventDefault();
 
         const username = document.getElementById('register-username').value;
         const password = document.getElementById('register-password').value;
@@ -594,19 +643,17 @@
         .then(data => {
             if (data.api_key) {
                 console.log('Registration successful, API Key:', data.api_key);
-                // You can update the DOM to show the API key or redirect the user
             } else {
                 console.log('Registration failed:', data.error);
-                // Update the DOM to inform the user of a failed registration
             }
         })
         .catch(error => {
             console.error('Error during registration:', error);
         });
     }
-   
+
     function loginUser(event) {
-        event.preventDefault(); // Stop the form from submitting normally
+        event.preventDefault();
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
 
@@ -638,11 +685,11 @@
     }
 
     async function checkSchedule() {
-        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
-        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
+        const foodScheduleTime1 = document.getElementById('foodScheduleTime1').innerText;
+        const foodScheduleEnabled1 = document.getElementById('foodScheduleEnabled1').checked;
 
-        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
-        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+        const foodScheduleTime2 = document.getElementById('foodScheduleTime2').innerText;
+        const foodScheduleEnabled2 = document.getElementById('foodScheduleEnabled2').checked;
 
         const now = new Date();
         const currentHour = now.getHours() % 12 || 12;
@@ -650,19 +697,18 @@
         const currentAMPM = now.getHours() >= 12 ? 'PM' : 'AM';
         const currentTimeString = `${currentHour}:${currentMinute.toString().padStart(2, '0')} ${currentAMPM}`;
 
-        if (foodScheduleEnabled && foodScheduleTime === currentTimeString) {
+        if (foodScheduleEnabled1 && foodScheduleTime1 === currentTimeString) {
             dispenseFood();
         }
 
-        if (waterScheduleEnabled && waterScheduleTime === currentTimeString) {
+        if (foodScheduleEnabled2 && foodScheduleTime2 === currentTimeString) {
             dispenseFood();
         }
     }
 
-    
-
     window.onload = function() {
         setInterval(checkSchedule, 60000);
+        setInterval(checkDeviceStatus, 5000);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -689,7 +735,7 @@
                 .then(data => {
                     if (data.api_key) {
                         sessionStorage.setItem('api_key', data.api_key);
-                        window.location.href = '/'; // Redirect to the main page
+                        window.location.href = '/';
                     } else {
                         alert('Login failed: ' + data.error);
                     }
@@ -703,60 +749,64 @@
             console.error("Login form not found. Please check the form ID.");
         }
 
-        document.getElementById('foodScheduleEnabled').addEventListener('change', updateTimerInDatabase);
-        document.getElementById('waterScheduleEnabled').addEventListener('change', updateTimerInDatabase);
+        document.getElementById('foodScheduleEnabled1').addEventListener('change', updateTimerInDatabase);
+        document.getElementById('foodScheduleEnabled2').addEventListener('change', updateTimerInDatabase);
 
-        setInterval(checkSchedule, 60000);
-        checkDeviceStatus();
-        setInterval(checkDeviceStatus, 5000); 
         fetchTimerData(); 
     });
 
     async function fetchTimerData() {
-    const apiUrl = 'http://127.0.0.1:8080/api/timer';
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-                'Content-Type': 'application/json',
+        const apiUrl = 'http://127.0.0.1:8080/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            document.getElementById('foodScheduleTime1').innerText = data.foodScheduleTime1;
+            document.getElementById('foodScheduleEnabled1').checked = data.foodScheduleEnabled1;
+            document.getElementById('foodPortion1').value = data.foodPortion1;
+            document.getElementById('foodScheduleTime2').innerText = data.foodScheduleTime2;
+            document.getElementById('foodScheduleEnabled2').checked = data.foodScheduleEnabled2;
+            document.getElementById('foodPortion2').value = data.foodPortion2;
+        } catch (error) {
+            console.error('Error fetching timer data:', error);
         }
-
-        const data = await response.json();
-        document.getElementById('foodScheduleTime').innerText = data.foodScheduleTime;
-        document.getElementById('foodScheduleEnabled').checked = data.foodScheduleEnabled;
-        document.getElementById('waterScheduleTime').innerText = data.waterScheduleTime;
-        document.getElementById('waterScheduleEnabled').checked = data.waterScheduleEnabled;
-    } catch (error) {
-        console.error('Error fetching timer data:', error);
     }
-}
-
 
     async function checkDeviceStatus() {
-        try {
-            const response = await fetch('http://127.0.0.1:8080/api/device_status');
-            if (response.ok) {
-                const data = await response.json();
-                const statusIndicator = document.getElementById('statusIndicator');
-                if (data.online) {
-                    statusIndicator.classList.remove('status-offline');
-                    statusIndicator.classList.add('status-online');
-                } else {
-                    statusIndicator.classList.remove('status-online');
-                    statusIndicator.classList.add('status-offline');
-                }
-            } else {
-                console.error('Failed to fetch device status');
+        const apiUrl = 'http://127.0.0.1:8080/api/device_status';
+        fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
             }
-        } catch (error) {
-            console.error('Error fetching device status:', error);
-        }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            if (data.online) {
+                statusIndicator.classList.remove('offline');
+                statusIndicator.classList.add('online');
+                statusText.innerText = 'Online';
+            } else {
+                statusIndicator.classList.remove('online');
+                statusIndicator.classList.add('offline');
+                statusText.innerText = 'Offline';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking device status:', error);
+        });
     }
     </script>
 </body>
