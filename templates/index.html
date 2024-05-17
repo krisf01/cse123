@@ -27,12 +27,16 @@
             text-align: center;
         }
         .status-indicator {
-            background-color: #00e600;
-            border-radius: 50%;
             display: inline-block;
             width: 10px;
             height: 10px;
             margin-left: 5px;
+        }
+        .status-online {
+            background-color: #00e600;
+        }
+        .status-offline {
+            background-color: #ff0000;
         }
         #buttonContainer {
             display: flex;
@@ -70,16 +74,10 @@
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
             background-color: rgba(255, 255, 255, 1); /* Solid white when active */
         }
-
         .button-icon {
             width: 70%; /* Adjust icon size to fit the button */
             height: auto; /* Maintain aspect ratio */
         }
-        .button-text {
-            font-size: 16px;
-            color: #333;
-        }
-
 
         .schedule {
             background-color: rgba(255, 255, 255, 0.9);
@@ -97,6 +95,29 @@
         }
         .schedule-item:not(:last-child) {
             border-bottom: 1px solid #e6e6e6;
+        }
+        .time-picker {
+            display: flex;
+            align-items: center;
+        }
+        .time-picker span {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .time-picker select {
+            margin: 0 5px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+        .edit-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            color: #2196F3;
         }
         .switch {
             position: relative;
@@ -144,15 +165,8 @@
         .slider.round:before {
             border-radius: 50%;
         }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-
-        /* Rounded sliders */
-        .slider.round {
+/* Rounded sliders */
+.slider.round {
             border-radius: 34px;
         }
 
@@ -160,74 +174,282 @@
             border-radius: 50%;
         }
 
-        .time-select {
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #b3daff;
-            margin-left: 10px; /* Adjust spacing to align with design */
+        /* Modal styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
         }
-
-        .controls {
-        display: flex;
-        align-items: center; /* Ensure vertical alignment is centered */
-    }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .scrolling-time-picker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .scrolling-time-picker select {
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 60px;
+        }
+        .scrolling-time-picker select#ampm {
+            width: 80px;
+        }
+        /* Pretty modal styling */
+        .pretty-modal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            animation: scaleIn 0.3s ease;
+        }
+        .pretty-modal h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .pretty-modal p {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #666;
+        }
+        .pretty-modal .close {
+            align-self: flex-end;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .pretty-modal .close:hover {
+            color: #333;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); }
+            to { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>CSE123's Pet Feeder</h1>
-        <span>Online <span class="status-indicator"></span></span>
+        <span>Device Status: <span class="status-indicator" id="statusIndicator"></span></span>
     </div>
-    
-    <div id="imageModal" style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-        <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px;">
-            <span onclick="document.getElementById('imageModal').style.display='none'" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-            <img id="popupImage" src="" style="width: 100%;">
+
+    <div id="imageModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+            <img id="popupImage" src="" style="width: 100%; border-radius: 12px;">
         </div>
     </div>
 
+
+    <div id="levelModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('levelModal').style.display='none'">&times;</span>
+            <h2>Food and Water Levels</h2>
+            <div id="levelsContent">
+                <!-- Food and water levels will be displayed here -->
+            </div>
+        </div>
+    </div>
     <div id="buttonContainer">
         <button class="button" onclick="fetchAndDisplayFood()">
             <img src="https://source.unsplash.com/60x60/?cat,food" alt="Food Icon" class="button-icon">
             <span class="button-text">Food Level</span>
         </button>
 
+
         <button class="button" onclick="dispenseFood()">
             <img src="https://source.unsplash.com/60x60/?dog,food" alt="Dispense Food" class="button-icon">
             <span class="button-text">Dispense Food</span>
         </button>
 
-        <button class="button" onclick="sendPic() ; liveFeed();">
+
+        <button class="button" onclick="liveFeed(); sendPic();">
             <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
             <span class="button-text">Live Feed</span>
         </button>
+
 
         <button class="button" onclick="fetchAndDisplayWater()">
             <img src="https://source.unsplash.com/60x60/?water,bowl" alt="Water Icon" class="button-icon">
             <span class="button-text">Water Level</span>
         </button>
     </div>
-
     <div class="schedule">
         <div class="schedule-item">
-            <span>Dispense Food Everyday Automatically</span>
-            <div class = "controls">
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('food')">✎</button>
+                <span id="foodScheduleTime">12:00 PM</span>
+                <span>Dispense Food, Everyday</span>
+            </div>
             <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="foodScheduleEnabled">
                 <span class="slider round"></span>
             </label>
-            <!-- New time select menu -->
-            <select class="time-select">
-            </select>
         </div>
+        <div class="schedule-item">
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('water')">✎</button>
+                <span id="waterScheduleTime">12:00 PM</span>
+                <span>Dispense Food, Everyday</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="waterScheduleEnabled">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div id="result"></div>
+
+    <div id="timePickerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Time</h2>
+                <span class="close" onclick="closeTimePicker()">&times;</span>
+            </div>
+            <div class="scrolling-time-picker">
+                <select id="hour">
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <span>:</span>
+                <select id="minute">
+                    <script>
+                        for (let i = 0; i < 60; i++) {
+                            let padded = i.toString().padStart(2, '0');
+                            document.write(`<option value="${padded}">${padded}</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="ampm">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                </select>
+            </div>
+            <button onclick="setTime()">Set</button>
         </div>
     </div>
 
-    <div id="result"></div>
 
 <script>
+
+let currentSchedule;
+function openTimePicker(schedule) {
+        currentSchedule = schedule;
+        document.getElementById('timePickerModal').style.display = 'block';
+    }
+ 
+ 
+    function closeTimePicker() {
+        document.getElementById('timePickerModal').style.display = 'none';
+    }
+ 
+ 
+    function setTime() {
+        const hour = document.getElementById('hour').value;
+        const minute = document.getElementById('minute').value;
+        const ampm = document.getElementById('ampm').value;
+        const timeString = `${hour}:${minute} ${ampm}`;
+ 
+ 
+        if (currentSchedule === 'food') {
+            document.getElementById('foodScheduleTime').innerText = timeString;
+        } else if (currentSchedule === 'water') {
+            document.getElementById('waterScheduleTime').innerText = timeString;
+        }
+
+        updateTimerInDatabase();
+        closeTimePicker();
+    }
+    async function updateTimerInDatabase() {
+        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
+        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
+
+        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
+        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+
+        const timerData = {
+            foodScheduleTime,
+            foodScheduleEnabled,
+            waterScheduleTime,
+            waterScheduleEnabled
+        };
+
+        const apiUrl = 'http://127.0.0.1:8080/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(timerData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Timer data updated:', data);
+        } catch (error) {
+            console.error('Error updating timer data:', error);
+        }
+    }
     async function fetchAndDisplayWater() {
-    const apiUrl = 'http://10.0.0.98:8080/api/water_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://127.0.0.1:8080/api/water_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -243,15 +465,16 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = `<p>Water Level: ${data.water_level}</p>`;
+            document.getElementById('levelModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
+        }
     }
-}
-
     async function fetchAndDisplayFood() {
-    const apiUrl = 'http://10.0.0.98 :8080/api/food_level'; // Adjusted to the correct endpoint
+    const apiUrl = 'http://127.0.0.1:8080/api/food_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -267,15 +490,16 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = `<p>Food Level: ${data.food_level}%</p>`;
+            document.getElementById('levelModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
+        }
     }
-}
-
-async function dispenseFood() {
-    const apiUrl = 'http://10.0.0.98:8080/api/commands'; // Correct endpoint that receives the dispense command
+    async function dispenseFood() {
+    const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
 
     try {
         const response = await fetch(apiUrl, {
@@ -299,37 +523,34 @@ async function dispenseFood() {
         alert('Error dispensing food. Please try again.');
     }
 }
+async function sendPic() {
+        const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
 
-// come back to this
-// async function liveFeed() {
-//     const apiUrl = 'http://127.0.0.1:8080/api/commands'; // Correct endpoint that receives the dispense command
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+            });
 
-//     try {
-//         const response = await fetch(apiUrl, {
-//             method: 'POST',
-//             headers: {
-//                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-//         });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
-
-//         const data = await response.json();
-//         console.log('Response from server:', data.message); // Log or handle the response appropriately
-//         alert('Capture command sent: ' + data.message);
-//     } catch (error) {
-//         console.error('Error sending capture command:', error);
-//         alert('Error sending capture command. Please try again.');
-//     }
-// }
-
+            const data = await response.json();
+            console.log('Response from server:', data.message); // Log or handle the response appropriately
+            alert('Capture command sent: ' + data.message);
+        } catch (error) {
+            console.error('Error sending capture command:', error);
+            alert('Error sending capture command. Please try again.');
+        }
+}
 async function liveFeed() {
-        const apiUrl = 'http://10.0.0.98:8080/api/live_feed';
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        const apiUrl = 'http://127.0.0.1:8080/api/live_feed';
+        await new Promise(resolve => setTimeout(resolve, 35000));
         try {
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -357,41 +578,14 @@ async function liveFeed() {
             console.error('Error fetching data:', error);
             document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
         }
-    }
-
-    async function sendPic() {
-        const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Response from server:', data.message); // Log or handle the response appropriately
-            alert('Capture command sent: ' + data.message);
-        } catch (error) {
-            console.error('Error sending capture command:', error);
-            alert('Error sending capture command. Please try again.');
-        }
-        }
-
+}
 function registerUser(event) {
     event.preventDefault(); // Prevent the default form submission
 
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('http://10.0.0.98:8080/register', {
+    fetch('http://127.0.0.1:8080/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -412,13 +606,12 @@ function registerUser(event) {
         console.error('Error during registration:', error);
     });
 }
-    
 function loginUser(event) {
     event.preventDefault(); // Stop the form from submitting normally
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('http://10.0.0.98:8080/login', {
+    fetch('http://127.0.0.1:8080/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -444,8 +637,35 @@ function loginUser(event) {
         alert('Login failed: Please check console for more details.');
     });
 }
+async function checkSchedule() {
+        const foodScheduleTime = document.getElementById('foodScheduleTime').innerText;
+        const foodScheduleEnabled = document.getElementById('foodScheduleEnabled').checked;
 
-document.addEventListener('DOMContentLoaded', function() {
+        const waterScheduleTime = document.getElementById('waterScheduleTime').innerText;
+        const waterScheduleEnabled = document.getElementById('waterScheduleEnabled').checked;
+
+        const now = new Date();
+        const currentHour = now.getHours() % 12 || 12;
+        const currentMinute = now.getMinutes();
+        const currentAMPM = now.getHours() >= 12 ? 'PM' : 'AM';
+        const currentTimeString = `${currentHour}:${currentMinute.toString().padStart(2, '0')} ${currentAMPM}`;
+
+        if (foodScheduleEnabled && foodScheduleTime === currentTimeString) {
+            dispenseFood();
+        }
+
+        if (waterScheduleEnabled && waterScheduleTime === currentTimeString) {
+            dispenseFood();
+        }
+    }
+
+    
+
+    window.onload = function() {
+        setInterval(checkSchedule, 60000);
+    }   
+
+    document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', function(event) {
@@ -453,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            fetch('http://10.0.0.98:8080/login', {
+            fetch('http://127.0.0.1:8080/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -475,28 +695,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Error during login:', error);
-                alert('Login failed: Please check console for more details.');
+                    console.error('Error during login:', error);
+                    alert('Login failed: Please check console for more details.');
+                });
             });
-        });
-    } else {
-        console.error("Login form not found. Please check the form ID.");
-    }
-});
+        } else {
+            console.error("Login form not found. Please check the form ID.");
+        }
+        document.getElementById('foodScheduleEnabled').addEventListener('change', updateTimerInDatabase);
+        document.getElementById('waterScheduleEnabled').addEventListener('change', updateTimerInDatabase);
 
-function populateTimeOptions() {
-    const timeSelect = document.querySelector('.time-select');
-    const times = ['12:00 AM', '1:00 AM', '2:00 AM', '3:00 AM', '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '08:00 AM','9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM', '11:00 PM']; // This array could be fetched from a server or configured more dynamically
-    times.forEach(time => {
-        let option = document.createElement('option');
-        option.value = time;
-        option.textContent = time;
-        timeSelect.appendChild(option);
+        setInterval(checkSchedule, 60000);
+        checkDeviceStatus();
+        setInterval(checkDeviceStatus, 5000); 
+        fetchTimerData(); 
     });
+    async function fetchTimerData() {
+    const apiUrl = 'http://127.0.0.1:8080/api/timer';
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById('foodScheduleTime').innerText = data.foodScheduleTime;
+        document.getElementById('foodScheduleEnabled').checked = data.foodScheduleEnabled;
+        document.getElementById('waterScheduleTime').innerText = data.waterScheduleTime;
+        document.getElementById('waterScheduleEnabled').checked = data.waterScheduleEnabled;
+    } catch (error) {
+        console.error('Error fetching timer data:', error);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', populateTimeOptions); // Call this function when the page is loaded
-
+async function checkDeviceStatus() {
+        try {
+            const response = await fetch('http://127.0.0.1:8080/api/device_status');
+            if (response.ok) {
+                const data = await response.json();
+                const statusIndicator = document.getElementById('statusIndicator');
+                if (data.online) {
+                    statusIndicator.classList.remove('status-offline');
+                    statusIndicator.classList.add('status-online');
+                } else {
+                    statusIndicator.classList.remove('status-online');
+                    statusIndicator.classList.add('status-offline');
+                }
+            } else {
+                console.error('Failed to fetch device status');
+            }
+        } catch (error) {
+            console.error('Error fetching device status:', error);
+        }
+    }
 
 
 </script>

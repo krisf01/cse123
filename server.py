@@ -88,16 +88,6 @@ def home():
     print("Rendering index.html with API Key:", session['api_key'])  # Debug print
     return render_template('index.html')
 
-
-# @app.route('/api/food_level', methods=['GET'])
-# def get_food_level():
-#     try:
-#         with open('status.json', 'r') as file:
-#             status = json.load(file)
-#         return jsonify({"food_level": status.get("food_level", "Unknown")}), 200
-#     except (FileNotFoundError, json.JSONDecodeError):
-#         return jsonify({"error": "Status file not found or is empty"}), 404
-
 # NEWEST
 @app.route('/api/food_level', methods=['GET'])
 def get_food_level():
@@ -115,15 +105,6 @@ def get_food_level():
             return jsonify({"error": "No data found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# @app.route('/api/water_level', methods=['GET'])
-# def get_water_level():
-#     try:
-#         with open('status.json', 'r') as file:
-#             status = json.load(file)
-#         return jsonify({"water_level": status.get("water_level", "Unknown")}), 200
-#     except (FileNotFoundError, json.JSONDecodeError):
-#         return jsonify({"error": "Status file not found or is empty"}), 404
 
 # NEWEST
 @app.route('/api/water_level', methods=['GET'])
@@ -196,107 +177,98 @@ def validate_api_key(key):
 @app.route('/api/update_levels', methods=['POST'])
 @require_api_key
 def update_levels():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     data = request.json
     try:
-        ref = firebase_db.child('food_water_levels')
+        ref = firebase_db.child(f'users/{user_id}/food_water_levels')
         ref.push(data)
         return jsonify({"status": "Data updated in Firebase"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500 
+        return jsonify({"error": str(e)}), 500
     
 @app.route('/api/get_levels', methods=['GET'])
 @require_api_key
 def get_levels():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     try:
-        ref = db.reference('food_water_levels')
-        # Assuming you want to get the latest entry or customize as needed
-        data = ref.get()  
+        ref = db.reference(f'users/{user_id}/food_water_levels')
+        data = ref.get()
         return jsonify(data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/live_feed', methods=['GET'])
 def get_pic():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     try:
-        ref = db.reference('users/cse123petfeeder')
+        ref = db.reference(f'users/{user_id}')
         entries = ref.get()
-        
-        if entries:
-            # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
-            if 'image_url' in entries:
-                return jsonify({"image_url": entries['image_url']}), 200
-            else:
-                return jsonify({"error": "No image data found"}), 404
+
+        if entries and 'image_url' in entries:
+            return jsonify({"image_url": entries['image_url']}), 200
         else:
-            return jsonify({"error": "No data found"}), 404
+            return jsonify({"error": "No image data found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/receive_data', methods=['POST'])
 @require_api_key  # This uses your predefined require_api_key decorator
 def receive_data():
-    data = request.json  # Get JSON data sent by the hardware
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    # Process the data here (e.g., save to Firebase)
-    # Example of saving to Firebase:
-    ref = db.reference('food_water_levels')
-    ref.push(data)
-    
-    return jsonify({"status": "Data successfully received"}), 20
+    try:
+        ref = db.reference(f'users/{user_id}/food_water_levels')
+        ref.push(data)
+        return jsonify({"status": "Data successfully received"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# @app.route('/api/upload', methods=['POST'])
-# @require_token
-# def upload_file():
-#     if 'file' not in request.files:
-#         return jsonify({"error": "No file part"}), 400
-#     uploaded_file = request.files['file']
-#     if uploaded_file.filename == '':
-#         return jsonify({"error": "No selected file"}), 400
-
-#     # Determine the type of the uploaded file
-#     filename = uploaded_file.filename.lower()
-#     if filename.endswith('.txt'):
-#         try:
-#             # Receive a single line from the client
-#             file_content = uploaded_file.read().decode('utf-8').strip()
-#             if not file_content:
-#                 return jsonify({"error": "No content found in the uploaded file"}), 400
-
-#             # Read existing data from the JSON file
-#             with open(DATA_JSON_FILE, 'r') as file:
-#                 data = json.load(file)
-
-#             # Append the new string content as a separate entry
-#             data.append({"timestamp": datetime.now().isoformat(), "content": file_content})
-
-#             # Write back the updated JSON data
-#             with open(DATA_JSON_FILE, 'w') as file:
-#                 json.dump(data, file, indent=4)
-
-#         except UnicodeDecodeError:
-#             return jsonify({"error": "Invalid text encoding"}), 400
-
-#     elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
-#         file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-#         # Process as a binary file
-#         try:
-#             with open(file_path, 'wb') as f:
-#                 f.write(uploaded_file.read())
-#         except Exception as e:
-#             return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
-
-#     else:
-#         return jsonify({"error": "Unsupported file type"}), 400
-
-#     print(f"Received file: {filename}, processed successfully.")
-#     return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
-
-# NEWEST
 @app.route('/api/upload', methods=['POST'])
 @require_token
-def upload_file():
+def upload_content():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    content = request.data.decode('utf-8').strip()
+    if not content:
+        return jsonify({"error": "Empty content received"}), 400
+
+    try:
+        key, value = content.split(':', 1)
+        key = key.strip().lower()
+        value = value.strip().lower()
+
+        ref = db.reference(f'users/{user_id}')
+        ref.update({key: value})
+    except ValueError:
+        return jsonify({"error": "Invalid content format, expected 'key: value'"}), 400
+
+    return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"}), 200
+
+
+@app.route('/api/upload_picture', methods=['POST'])
+@require_token
+def upload_pic():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     uploaded_file = request.files['file']
@@ -304,47 +276,34 @@ def upload_file():
         return jsonify({"error": "No selected file"}), 400
 
     filename = uploaded_file.filename.lower()
-    if filename == 'data.json':
+
+    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
         try:
-            file_content = json.loads(uploaded_file.read().decode('utf-8'))
+            # Upload to Firebase Storage (if configured)
+            bucket = storage.bucket()
+            blob = bucket.blob(f'images/{user_id}/{filename}')
+            blob.upload_from_file(uploaded_file)
+            blob.make_public()
 
-            # Reference to your Firebase database where you want to update data
-            ref = db.reference('users/cse123petfeeder')
-
-            # Iterate through each item in the JSON and update Firebase accordingly
-            for item in file_content:
-                content_type = item['content'].split(' ')[0].lower()  # 'water' or 'food'
-                level = item['content'].split(' ')[2].lower()  # 'high' or 'low'
-                if content_type in ['water', 'food']:
-                    ref.update({
-                        f"{content_type}_level": level,
-                        f"{content_type}_timestamp": item['timestamp']
-                    })
-
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON file"}), 400
+            file_url = blob.public_url
+            ref = db.reference(f'users/{user_id}')
+            ref.update({'image_url': file_url})
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
-    elif filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
-        file_path = os.path.join(UPLOAD_FOLDER_IMAGES, filename)
-        try:
-            with open(file_path, 'wb') as f:
-                f.write(uploaded_file.read())
-        except Exception as e:
-            return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
-
+            return jsonify({"error": f"Failed to upload image to Firebase: {str(e)}"}), 500
     else:
         return jsonify({"error": "Unsupported file type"}), 400
 
-    print(f"Received file: {filename}, processed successfully.")
-    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully"})
+    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully", "url": file_url}), 200
 
 
 @app.route('/api/commands', methods=['GET', 'POST'])
 @require_token
 def handle_commands():
-    command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    command_path = os.path.join(COMMANDS_FOLDER, f"{user_id}_{COMMANDS_FILE}")
     if request.method == 'POST':
         data = request.json
         if not data or 'command' not in data:
@@ -370,11 +329,47 @@ def handle_commands():
                 return jsonify({"commands": filtered_commands}), 200
             return jsonify({"commands": commands}), 200
         except FileNotFoundError:
-            commands = []  # Create an empty list if file not found
+            commands = []
             with open(command_path, "w") as file:
-                json.dump(commands, file)  # Create the file
+                json.dump(commands, file)
             return jsonify({"commands": commands}), 200
 
+@app.route('/api/device_status', methods=['GET'])
+def get_device_status():
+    try:
+        ref = db.reference('device_status')
+        status = ref.get()
+        if status and 'online' in status:
+            return jsonify({"online": status['online']}), 200
+        else:
+            return jsonify({"online": False}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/timer', methods=['GET', 'POST'])
+@require_api_key
+def handle_timer():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    ref = db.reference(f'users/{user_id}/timer')
+    if request.method == 'POST':
+        data = request.json
+        try:
+            ref.set(data)
+            return jsonify({"status": "Timer updated successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            timer = ref.get()
+            if timer:
+                return jsonify(timer), 200
+            else:
+                return jsonify({"error": "No timer data found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
