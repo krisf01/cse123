@@ -267,15 +267,16 @@ def handle_commands():
 def get_device_status():
     if request.method == 'POST':
         try:
-            status = request.json.get('online')
-            ref = db.reference('device_status')
+            data = request.json
+            status = data.get('online')
+            ref = db.reference('users/cse123petfeeder/device_status')
             ref.set({"online": status, "last_heartbeat": datetime.now().isoformat()})
             return jsonify({"status": "success"}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     elif request.method == 'GET':
         try:
-            ref = db.reference('device_status')
+            ref = db.reference('users/cse123petfeeder/device_status')
             status = ref.get()
             if status and 'online' in status and 'last_heartbeat' in status:
                 last_heartbeat = datetime.fromisoformat(status['last_heartbeat'])
@@ -286,6 +287,8 @@ def get_device_status():
                 return jsonify({"online": False}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/api/timer', methods=['GET', 'POST'])
 def handle_timer():
