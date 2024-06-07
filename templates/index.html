@@ -6,99 +6,134 @@
     <title>CSE123's Pet Feeder</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            background-color: #f0f8ff; /* Light blue background */
+            font-family: 'Arial', sans-serif;
+            background-image: url('https://source.unsplash.com/1600x900/?pets');
+            background-size: cover;
             color: #333;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
         }
-
         .header {
-            background-color: #e6f7ff;
-            padding: 10px 0;
-            border-bottom: 2px solid #b3daff;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            width: 80%;
+            text-align: center;
         }
-
         .status-indicator {
-            background-color: #00e600;
+            background-color: #ccc;
             border-radius: 50%;
             display: inline-block;
             width: 10px;
             height: 10px;
-            margin-left: 5px;
+             margin-left: 5px;
+            transition: background-color 0.3s ease;
         }
-
-        .button {
-            background-color: #fff;
-            border: 2px solid #ff6666;
-            border-radius: 50%;
-            padding: 20px;
-            margin: 10px;
-            width: 150px;
-            height: 150px;
-            position: relative; /* To position the icon and text inside */
-            cursor: pointer;
-            box-shadow: 0px 4px 6px #aaa;
+        .status-indicator.online {
+            background-color: #00e600;
         }
-
+        .status-indicator.offline {
+            background-color: #ff0000;
+        }
         #buttonContainer {
             display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            width: 60%;
+            padding: 20px;
         }
-
+ .button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 20vw;
+            height: 20vw;
+            max-width: 120px;
+            max-height: 120px;
+            margin: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+ align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .button:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            background-color: rgba(255, 255, 255, 1);
+        }
         .button-icon {
-            width: 60px;
-            height: 60px;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            width: 70%;
+            height: auto;
         }
-
-        .button-text {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
         .schedule {
-            background-color: #fff;
-            padding: 10px;
-            margin: 20px 10px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px #aaa;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+            width: 80%;
+            margin: 20px;
         }
-
-        .schedule-item {
+ .schedule-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px;
+        }
+         .schedule-item:not(:last-child) {
             border-bottom: 1px solid #e6e6e6;
-            padding: 10px 0;
         }
-
-        .schedule-item:last-child {
-            border-bottom: none;
+        .time-picker {
+            display: flex;
+            align-items: center;
         }
-
+        .time-picker span {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+ .time-picker select {
+            margin: 0 5px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+        .edit-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            color: #2196F3;
+        }
         .switch {
             position: relative;
             display: inline-block;
             width: 60px;
             height: 34px;
         }
-
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
-        .slider {
+.slider {
             position: absolute;
             cursor: pointer;
             top: 0;
@@ -106,10 +141,8 @@
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            -webkit-transition: .4s;
             transition: .4s;
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -118,86 +151,374 @@
             left: 4px;
             bottom: 4px;
             background-color: white;
-            -webkit-transition: .4s;
             transition: .4s;
         }
-
         input:checked + .slider {
             background-color: #2196F3;
         }
-
         input:focus + .slider {
             box-shadow: 0 0 1px #2196F3;
         }
-
         input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
             transform: translateX(26px);
         }
-
-        /* Rounded sliders */
         .slider.round {
             border-radius: 34px;
         }
-
         .slider.round:before {
             border-radius: 50%;
         }
+.modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            align-self: flex-end;
+            cursor: pointer;
+        }
+ .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+  .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .scrolling-time-picker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .scrolling-time-picker select {
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 60px;
+        }
+        .scrolling-time-picker select#ampm {
+            width: 80px;
+        }
+        .portion-label {
+            font-size: 20px;
+            color: #333;
+            margin-top: 10px;
+            font-weight: bold;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+ .portion-control {
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+ .pretty-modal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            animation: scaleIn 0.3s ease;
+        }
+        .pretty-modal h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .pretty-modal p {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #666;
+        }
+ .pretty-modal .close {
+            align-self: flex-end;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .pretty-modal .close:hover {
+            color: #333;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); }
+            to { transform: scale(1); }
+        }
+        .modal-button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+  .modal-button:hover {
+            background-color: #1976D2;
+        }
+
     </style>
 </head>
 <body>
-<div class="header">
-    <h1>CSE123's Pet Feeder</h1>
-    <span>Online <span class="status-indicator"></span></span>
-</div>
-
-<div>
-
-    <button class="button" onclick="fetchAndDisplayFood()">
-        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Food Icon" class="button-icon">
-        <span class="button-text">Food Level</span>
-    </button>
-
-    <button class="button" onclick="dispenseFood()">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
-        <span class="button-text">Dispense Food</span>
-    </button>
-
-    <button class="button" onclick="liveFeed()">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/009/971/966/small_2x/cute-shiba-inu-dog-eating-ramen-noodle-cartoon-icon-illustration-animal-food-flat-cartoon-concept-vector.jpg" alt="Inst food" class="button-icon">
-        <span class="button-text">Live Feed</span>
-    </button>
-
-    <button class="button"  onclick="fetchAndDisplayWater()">
-        <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/2-cute-cat-sampad-art.jpg" alt="Water Icon" class="button-icon">
-        <span class="button-text">Water Level</span>
-    </button>
-
-</div>
-
-<div class="schedule">
-    <div class="schedule-item">
-        <span>12pm Dispense Food, Everyday</span>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider round"></span>
-        </label>
+    <div class="header">
+        <h1>CSE123's Pet Feeder</h1>
+        </div>
+ <div id="imageModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+            <img id="popupImage" src="" style="width: 100%; border-radius: 12px;">
+        </div>
     </div>
-    <div class="schedule-item">
-        <span>12pm Dispense Water, Everyday</span>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider round"></span>
-        </label>
-    </div>
-</div>
 
-<div id="result"></div>
+
+    <div id="levelModal" class="modal">
+        <div class="modal-content pretty-modal">
+            <span class="close" onclick="document.getElementById('levelModal').style.display='none'">&times;</span>
+            <h2>Food and Water Levels</h2>
+            <div id="levelsContent">
+                <!-- Food and water levels will be displayed here -->
+            </div>
+        </div>
+    </div>
+ <div id="buttonContainer">
+        <button class="button" onclick="fetchAndDisplayFood()">
+            <img src="https://source.unsplash.com/60x60/?cat,food" alt="Food Icon" class="button-icon">
+            <span class="button-text">Food Level</span>
+        </button>
+
+
+        <button class="button" onclick="dispenseFood()">
+            <img src="https://source.unsplash.com/60x60/?dog,food" alt="Dispense Food" class="button-icon">
+            <span class="button-text">Dispense Food</span>
+        </button>
+ <button class="button" onclick="liveFeed(); sendPic();">
+            <img src="https://source.unsplash.com/60x60/?pet,camera" alt="Live Feed" class="button-icon">
+            <span class="button-text">Live Feed</span>
+        </button>
+
+
+        <button class="button" onclick="fetchAndDisplayWater()">
+            <img src="https://source.unsplash.com/60x60/?water,bowl" alt="Water Icon" class="button-icon">
+            <span class="button-text">Water Level</span>
+        </button>
+    </div>
+
+    <div class="schedule">
+        <div class="schedule-item">
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('food1')">✎</button>
+                <span id="foodScheduleTime1">12:00 PM</span>
+                <span>Dispense Food, Everyday</span>
+                <span id="foodPortion1" style="display: none;"></span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="foodScheduleEnabled1">
+                <span class="slider round"></span>
+            </label>
+        </div>
+<div class="schedule-item">
+            <div class="time-picker">
+                <button class="edit-button" onclick="openTimePicker('food2')">✎</button>
+                <span id="foodScheduleTime2">12:00 PM</span>
+                <span>Dispense Food, Everyday</span>
+                <span id="foodPortion2" style="display: none;"></span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="foodScheduleEnabled2">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div id="result"></div>
+
+    <div id="timePickerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Time</h2>
+                <span class="close" onclick="closeTimePicker()">&times;</span>
+            </div>
+            <div class="scrolling-time-picker">
+                <select id="hour">
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <span>:</span>
+                <select id="minute">
+                    <script>
+                        for (let i = 0; i < 60; i++) {
+                            let padded = i.toString().padStart(2, '0');
+                            document.write(`<option value="${padded}">${padded}</option>`);
+                        }
+                    </script>
+                 </select>
+ <select id="ampm">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                </select>
+            </div>
+ <div class="portion-label">Portion Size</div>
+            <select id="portionSize" class="portion-control">
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+            </select>
+            <button class="modal-button" onclick="setTime()">Set</button>
+        </div>
+    </div>
+
 
 <script>
-    async function fetchAndDisplayWater() {
-    const apiUrl = 'http://172.20.10.3:8080/api/water_level'; // Adjusted to the correct endpoint
+
+    let currentSchedule;
+ 
+ 
+    function openTimePicker(schedule) {
+            currentSchedule = schedule;
+            document.getElementById('timePickerModal').style.display = 'block';
+    }
+
+ 
+    function closeTimePicker() {
+        document.getElementById('timePickerModal').style.display = 'none';
+    }
+ function setTime() {
+        const hour = document.getElementById('hour').value;
+        const minute = document.getElementById('minute').value;
+        const ampm = document.getElementById('ampm').value;
+        const portionSize = document.getElementById('portionSize').value;
+                    const timeString = `${hour}:${minute} ${ampm}`;
+ 
+ 
+        if (currentSchedule === 'food1') {
+            document.getElementById('foodScheduleTime1').innerText = timeString;
+                        document.getElementById('foodPortion1').innerText = portionSize;
+        } else if (currentSchedule === 'food2') {
+            document.getElementById('foodScheduleTime2').innerText = timeString;
+         document.getElementById('foodPortion2').innerText = portionSize;
+        }
+
+        updateTimerInDatabase();
+        closeTimePicker();
+    }
+async function updateTimerInDatabase() {
+        const foodScheduleTime1 = document.getElementById('foodScheduleTime1').innerText;
+        const foodScheduleEnabled1 = document.getElementById('foodScheduleEnabled1').checked;
+        const foodPortion1 = document.getElementById('foodPortion1').value;
+
+        const foodScheduleTime2 = document.getElementById('foodScheduleTime2').innerText;
+        const foodScheduleEnabled2 = document.getElementById('foodScheduleEnabled2').checked;
+        const foodPortion2 = document.getElementById('foodPortion2').value;
+
+        const timerData = {
+            foodScheduleTime1,
+            foodScheduleEnabled1,
+            foodPortion1,
+            foodScheduleTime2,
+            foodScheduleEnabled2,
+            foodPortion2
+        };
+
+        const apiUrl = 'https://cse123petfeeder.com/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(timerData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Timer data updated:', data);
+        } catch (error) {
+            console.error('Error updating timer data:', error);
+        }
+    }
+ document.addEventListener('DOMContentLoaded', function() {
+        fetchTimerData();
+    });
+ async function fetchTimerData() {
+        const apiUrl = 'https://cse123petfeeder.com/api/timer';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            document.getElementById('foodScheduleTime1').innerText = data.foodScheduleTime1;
+            document.getElementById('foodScheduleEnabled1').checked = data.foodScheduleEnabled1;
+            document.getElementById('foodPortion1').value = data.foodPortion1;
+            document.getElementById('foodScheduleTime2').innerText = data.foodScheduleTime2;
+            document.getElementById('foodScheduleEnabled2').checked = data.foodScheduleEnabled2;
+            document.getElementById('foodPortion2').value = data.foodPortion2;
+        } catch (error) {
+            console.error('Error fetching timer data:', error);
+        }
+    }
+async function fetchAndDisplayWater() {
+    const apiUrl = 'https://cse123petfeeder.com/api/water_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -213,15 +534,17 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Water Level: ${data.water_level}</h2>`; // Display the water level
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = `<p>Water Level: ${data.water_level}</p>`;
+            document.getElementById('levelModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
+        }
     }
-}
 
-    async function fetchAndDisplayFood() {
-    const apiUrl = 'http://172.20.10.3:8080/api/food_level'; // Adjusted to the correct endpoint
+async function fetchAndDisplayFood() {
+    const apiUrl = 'https://cse123petfeeder.com/api/food_level'; // Adjusted to the correct endpoint
 
     try {
         const response = await fetch(apiUrl, {
@@ -237,18 +560,21 @@
         }
 
         const data = await response.json();
-        document.getElementById('result').innerHTML = `<h2>Food Level: ${data.food_level}</h2>`; // Display the food level
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelsContent').innerHTML = `<p>Food Level: ${data.food_level}</p>`;
+            document.getElementById('levelModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('levelsContent').innerHTML = '<p>Error fetching data. Please try again.</p>';
+            document.getElementById('levelModal').style.display = 'block';
+        }
     }
-}
+
 
 async function dispenseFood() {
-    const apiUrl = 'http://172.20.10.3:8080/api/commands'; // Correct endpoint that receives the dispense command
+    const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
 
-    try {
-        const response = await fetch(apiUrl, {
+try {
+    const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`, // Assuming API key is stored in session storage
@@ -265,35 +591,65 @@ async function dispenseFood() {
         console.log('Response from server:', data.message); // Log or handle the response appropriately
         alert('Food Dispensed: ' + data.message);
     } catch (error) {
-        console.error('Error sending dispense command:', error);
+              console.error('Error sending dispense command:', error);
         alert('Error dispensing food. Please try again.');
     }
 }
 
-async function liveFeed() {
-    const apiUrl = 'http://172.20.10.3:8080/api/commands'; // Correct endpoint that receives the dispense command
+async function sendPic() {
+        const apiUrl = 'https://cse123petfeeder.com/api/commands'; // Correct endpoint that receives the dispense command
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
-        });
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: "CAPTURE" }) // Sending CAPTURE command to the server
+            });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data.message); // Log or handle the response appropriately
+            alert('Capture command sent: ' + data.message);
+        } catch (error) {
+            console.error('Error sending capture command:', error);
+            alert('Error sending capture command. Please try again.');
         }
+}
 
-        const data = await response.json();
-        console.log('Response from server:', data.message); // Log or handle the response appropriately
-        alert('Capture command sent: ' + data.message);
-    } catch (error) {
-        console.error('Error sending capture command:', error);
-        alert('Error sending capture command. Please try again.');
-    }
+async function liveFeed() {
+        const apiUrl = 'https://cse123petfeeder.com/api/live_feed';
+        await new Promise(resolve => setTimeout(resolve, 35000));
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+   const data = await response.json();
+            if(data.image_url){
+                const imageModal = document.getElementById('imageModal');
+                const popupImage = document.getElementById('popupImage');
+                popupImage.src = data.image_url;
+                imageModal.style.display = 'block'; // Show the modal
+            }else{
+                throw new Error('No image URL found.');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching data. Please try again.</p>';
+        }
 }
 
 function registerUser(event) {
@@ -302,7 +658,7 @@ function registerUser(event) {
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
 
-    fetch('http://172.20.10.3:8080/register', {
+    fetch('https://cse123petfeeder.com/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -323,13 +679,12 @@ function registerUser(event) {
         console.error('Error during registration:', error);
     });
 }
-    
 function loginUser(event) {
     event.preventDefault(); // Stop the form from submitting normally
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    fetch('http://172.20.10.3:8080/login', {
+    fetch('https://cse123petfeeder.com/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -355,6 +710,57 @@ function loginUser(event) {
         alert('Login failed: Please check console for more details.');
     });
 }
+async function checkSchedule() {
+        const foodScheduleTime1 = document.getElementById('foodScheduleTime1').innerText;
+        const foodScheduleEnabled1 = document.getElementById('foodScheduleEnabled1').checked;
+const foodPortion1 = document.getElementById('foodPortion1').innerText;
+        const foodScheduleTime2 = document.getElementById('foodScheduleTime2').innerText;
+        const foodScheduleEnabled2 = document.getElementById('foodScheduleEnabled2').checked;
+const foodPortion2 = document.getElementById('foodPortion2').innerText;
+
+        const now = new Date();
+        const currentHour = now.getHours() % 12 || 12;
+        const currentMinute = now.getMinutes();
+        const currentAMPM = now.getHours() >= 12 ? 'PM' : 'AM';
+        const currentTimeString = `${currentHour}:${currentMinute.toString().padStart(2, '0')} ${currentAMPM}`;
+    
+       //if (foodScheduleEnabled1 && foodScheduleTime1 === currentTimeString) {
+        //    dispenseFood();
+        //}
+
+        //if (foodScheduleEnabled2 && foodScheduleTime2 === currentTimeString) {
+          //  dispenseFood();
+        //}
+ if (foodScheduleEnabled1 && foodScheduleTime1 === currentTimeString) {
+                if (foodPortion1 === 'large') {
+                    await dispenseFood();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await dispenseFood();
+                } else {
+                    await dispenseFood();
+                }
+            }
+if (foodScheduleEnabled2 && foodScheduleTime2 === currentTimeString) {
+                if (foodPortion2 === 'large') {
+                    await dispenseFood();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await dispenseFood();
+                } else {
+                    await dispenseFood();
+                }
+            }
+
+
+
+
+}
+
+    
+
+    window.onload = function() {
+        setInterval(checkSchedule, 60000);
+        setInterval(checkDeviceStatus, 5000);
+    }   
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
@@ -364,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
-            fetch('http://172.20.10.3:8080/login', {
+            fetch('https://cse123petfeeder.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -386,18 +792,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Error during login:', error);
-                alert('Login failed: Please check console for more details.');
+                    console.error('Error during login:', error);
+                    alert('Login failed: Please check console for more details.');
+                });
             });
-        });
-    } else {
-        console.error("Login form not found. Please check the form ID.");
-    }
-});
+        } else {
+            console.error("Login form not found. Please check the form ID.");
+        }
 
+        document.getElementById('foodScheduleEnabled1').addEventListener('change', updateTimerInDatabase);
+        document.getElementById('foodScheduleEnabled2').addEventListener('change', updateTimerInDatabase);
+        fetchTimerData(); 
+    });
+async function fetchTimerData() {
+    const apiUrl = 'https://cse123petfeeder.com/api/timer';
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('api_key')}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+            document.getElementById('foodScheduleTime1').innerText = data.foodScheduleTime1;
+            document.getElementById('foodScheduleEnabled1').checked = data.foodScheduleEnabled1;
+            document.getElementById('foodPortion1').value = data.foodPortion1;
+            document.getElementById('foodScheduleTime2').innerText = data.foodScheduleTime2;
+            document.getElementById('foodScheduleEnabled2').checked = data.foodScheduleEnabled2;
+            document.getElementById('foodPortion2').value = data.foodPortion2;
+    } catch (error) {
+        console.error('Error fetching timer data:', error);
+    }
+}
+async function checkDeviceStatus() {
+        const apiUrl = 'https://cse123petfeeder.com/api/device_status';
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const statusIndicator = document.getElementById('status-indicator');
+            //const statusText = document.getElementById('status-text');
+            if (data.online) {
+                statusIndicator.classList.remove('offline');
+                statusIndicator.classList.add('online');
+                //statusText.innerText = 'Online';
+            } else {
+                statusIndicator.classList.remove('online');
+                statusIndicator.classList.add('offline');
+                //statusText.innerText = 'Offline';
+            }
+        } catch (error) {
+            console.error('Error checking device status:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setInterval(checkDeviceStatus, 5000); // Check status every 5 seconds
+    });
 
 </script>
 
 </body>
 
 </html>
+

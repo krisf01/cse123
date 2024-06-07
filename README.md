@@ -51,3 +51,6 @@ curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer TOKEN
 { <br>
   "message": "Command received and written" <br>
 }<br>
+
+## Issues with JSON when trying to run between the server.py and client.py?
+Delete the instructions.json on the server side under /.../uploads
