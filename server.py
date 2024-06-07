@@ -3,34 +3,36 @@ import json
 from functools import wraps
 from flask_cors import CORS
 import firebase_admin
-from firebase_admin import credentials, firestore, db
+from firebase_admin import credentials, firestore, db, storage
 import secrets
 import os
-import json
 import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv('/var/www/html/.env')
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Initialize Firebase Admin
-cred = credentials.Certificate('/Users/kfout/cse123_test/cse123/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
+cred = credentials.Certificate('/var/www/html/cse123-bac2c-firebase-adminsdk-cj30n-c9082dc2a9.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/'
+    'databaseURL': 'https://cse123-bac2c-default-rtdb.firebaseio.com/',
+     'storageBucket':'cse123-bac2c.appspot.com'
 })
 
 firebase_db = db.reference()
 
-# Directory where the files will be written and saved
-UPLOAD_FOLDER_TEXTS = '/Users/kfout/storage/text'
-UPLOAD_FOLDER_IMAGES = '/Users/kfout/storage/images'
-COMMANDS_FOLDER = '/Users/kfout/uploads'
-COMMANDS_FILE = 'instructions.json'
-DATA_JSON_FILE = os.path.join(UPLOAD_FOLDER_TEXTS, 'data.json')
+DATA_TEXT_FILE = 'data.txt'
 
-# Ensure the necessary folders exist
+# Directory where the files will be written and saved
+UPLOAD_FOLDER_TEXTS = '/opt/petfeeder/texts'
+UPLOAD_FOLDER_IMAGES = '/opt/petfeeder/images'
+COMMANDS_FOLDER = '/opt/petfeeder/uploads'
+COMMANDS_FILE = 'instructions.json'
+
+
+
 # Ensure the necessary folders exist
 if not os.path.exists(UPLOAD_FOLDER_TEXTS):
     os.makedirs(UPLOAD_FOLDER_TEXTS)
@@ -39,9 +41,16 @@ if not os.path.exists(COMMANDS_FOLDER):
 if not os.path.exists(UPLOAD_FOLDER_IMAGES):
     os.makedirs(UPLOAD_FOLDER_IMAGES)
 
-if not os.path.exists(DATA_JSON_FILE):
-    with open(DATA_JSON_FILE, 'w') as file:
+# here we are clearing the instruction.json every time we start the server
+def clear_instructions():
+    command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
+    with open(command_path, "w") as file:
         json.dump([], file)
+    print("Instructions cleared on server startup")
+
+# Clear instructions on server startup
+clear_instructions()
+
 
 def validate_token(auth_token):
     # Retrieve the expected token from environment variables
@@ -67,11 +76,10 @@ def require_token(f):
 
 
 app = Flask(__name__)
-#CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
-CORS(app, resources={r"/*": {"origins": "*"}})  # Adjust this as needed
+
+CORS(app, resources={r"/*": {"origins": "https://cse123petfeeder.com"}})  # Adjust this as needed
 
 app.secret_key = secrets.token_urlsafe(16)  # Generates a new key
-
 
 @app.route('/login', methods=['GET'])
 def login_page():
@@ -94,7 +102,7 @@ def get_food_level():
     try:
         ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
-        
+
         if entries:
             # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
             if 'food_level' in entries:
@@ -112,7 +120,7 @@ def get_water_level():
     try:
         ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
-        
+
         if entries:
             # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
             if 'water_level' in entries:
@@ -136,7 +144,7 @@ def handle_buttons():
         return jsonify({"response": "Food Level Checked"})
     else:
         return jsonify({"response": "Unknown Action"}), 400
-    
+
 def generate_api_key():
     return secrets.token_urlsafe(16)  # Adjust the length as needed
 
@@ -148,7 +156,6 @@ def require_api_key(f):
             return f(*args, **kwargs)
         return jsonify({"message": "Unauthorized"}), 401
     return decorated_function
-
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
@@ -172,103 +179,87 @@ def validate_api_key(key):
                 return True
     return False
 
-    
 # API to update levels, requiring API key
 @app.route('/api/update_levels', methods=['POST'])
 @require_api_key
 def update_levels():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
     data = request.json
     try:
-        ref = firebase_db.child(f'users/{user_id}/food_water_levels')
+        ref = firebase_db.child('food_water_levels')
         ref.push(data)
         return jsonify({"status": "Data updated in Firebase"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
 @app.route('/api/get_levels', methods=['GET'])
 @require_api_key
 def get_levels():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
     try:
-        ref = db.reference(f'users/{user_id}/food_water_levels')
+        ref = db.reference('food_water_levels')
+        # Assuming you want to get the latest entry or customize as needed
         data = ref.get()
         return jsonify(data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 @app.route('/api/live_feed', methods=['GET'])
 def get_pic():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
     try:
-        ref = db.reference(f'users/{user_id}')
+        ref = db.reference('users/cse123petfeeder')
         entries = ref.get()
 
-        if entries and 'image_url' in entries:
-            return jsonify({"image_url": entries['image_url']}), 200
+        if entries:
+            # Directly checking if 'food_level' is in the dictionary, as it seems there's only one entry
+            if 'image_url' in entries:
+                return jsonify({"image_url": entries['image_url']}), 200
+            else:
+                return jsonify({"error": "No image data found"}), 404
         else:
-            return jsonify({"error": "No image data found"}), 404
+            return jsonify({"error": "No data found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route('/api/receive_data', methods=['POST'])
 @require_api_key  # This uses your predefined require_api_key decorator
 def receive_data():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    data = request.json
+    data = request.json  # Get JSON data sent by the hardware
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    try:
-        ref = db.reference(f'users/{user_id}/food_water_levels')
-        ref.push(data)
-        return jsonify({"status": "Data successfully received"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Process the data here (e.g., save to Firebase)
+    # Example of saving to Firebase:
+    ref = db.reference('food_water_levels')
+    ref.push(data)
+
+    return jsonify({"status": "Data successfully received"}), 20
 
 @app.route('/api/upload', methods=['POST'])
 @require_token
 def upload_content():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
+    # Assuming content is sent as plain text in the body
     content = request.data.decode('utf-8').strip()
     if not content:
         return jsonify({"error": "Empty content received"}), 400
 
     try:
+        # Extract key and value from the content
         key, value = content.split(':', 1)
-        key = key.strip().lower()
-        value = value.strip().lower()
+        key = key.strip().lower()  # e.g., 'food_level'
+        value = value.strip().lower()  # e.g., 'low'
 
-        ref = db.reference(f'users/{user_id}')
+        # Update Firebase database
+        ref = db.reference('users/cse123petfeeder')
         ref.update({key: value})
+
     except ValueError:
         return jsonify({"error": "Invalid content format, expected 'key: value'"}), 400
 
-    return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"}), 200
-
+    print(f"Processed content: {content}")
+    return jsonify({"status": "success", "message": f"Data updated in Firebase for {key} with value {value}"})
 
 @app.route('/api/upload_picture', methods=['POST'])
 @require_token
 def upload_pic():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     uploaded_file = request.files['file']
@@ -279,31 +270,27 @@ def upload_pic():
 
     if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.tiff')):
         try:
-            # Upload to Firebase Storage (if configured)
+            # Upload to Firebase Storage
             bucket = storage.bucket()
-            blob = bucket.blob(f'images/{user_id}/{filename}')
+            blob = bucket.blob(f'images/{filename}')
             blob.upload_from_file(uploaded_file)
             blob.make_public()
 
             file_url = blob.public_url
-            ref = db.reference(f'users/{user_id}')
+            ref = db.reference('users/cse123petfeeder')
             ref.update({'image_url': file_url})
         except Exception as e:
             return jsonify({"error": f"Failed to upload image to Firebase: {str(e)}"}), 500
     else:
         return jsonify({"error": "Unsupported file type"}), 400
 
-    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully", "url": file_url}), 200
-
+    print(f"Received file: {filename}, processed successfully.")
+    return jsonify({"status": "success", "message": f"File {filename} received and processed successfully", "url": file_url})
 
 @app.route('/api/commands', methods=['GET', 'POST'])
 @require_token
 def handle_commands():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    command_path = os.path.join(COMMANDS_FOLDER, f"{user_id}_{COMMANDS_FILE}")
+    command_path = os.path.join(COMMANDS_FOLDER, COMMANDS_FILE)
     if request.method == 'POST':
         data = request.json
         if not data or 'command' not in data:
@@ -329,31 +316,39 @@ def handle_commands():
                 return jsonify({"commands": filtered_commands}), 200
             return jsonify({"commands": commands}), 200
         except FileNotFoundError:
-            commands = []
+            commands = []  # Create an empty list if file not found
             with open(command_path, "w") as file:
-                json.dump(commands, file)
+                json.dump(commands, file)  # Create the file
             return jsonify({"commands": commands}), 200
 
-@app.route('/api/device_status', methods=['GET'])
+@app.route('/api/device_status', methods=['GET', 'POST'])
 def get_device_status():
-    try:
-        ref = db.reference('device_status')
-        status = ref.get()
-        if status and 'online' in status:
-            return jsonify({"online": status['online']}), 200
-        else:
-            return jsonify({"online": False}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if request.method == 'POST':
+        try:
+            data = request.json
+            status = data.get('online')
+            ref = db.reference('users/cse123petfeeder/device_status')
+            ref.set({"online": status, "last_heartbeat": datetime.now().isoformat()})
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    elif request.method == 'GET':
+        try:
+            ref = db.reference('users/cse123petfeeder/device_status')
+            status = ref.get()
+            if status and 'online' in status and 'last_heartbeat' in status:
+                last_heartbeat = datetime.fromisoformat(status['last_heartbeat'])
+                if datetime.now() - last_heartbeat > timedelta(minutes=2):  # Consider offline if no heartbeat in the last 2 minutes
+                    return jsonify({"online": False}), 200
+                return jsonify({"online": status['online']}), 200
+            else:
+                return jsonify({"online": False}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 @app.route('/api/timer', methods=['GET', 'POST'])
-@require_api_key
 def handle_timer():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    ref = db.reference(f'users/{user_id}/timer')
+    ref = db.reference('users/cse123petfeeder/timer')
     if request.method == 'POST':
         data = request.json
         try:
@@ -371,5 +366,7 @@ def handle_timer():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
+                                                             
